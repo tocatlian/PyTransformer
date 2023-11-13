@@ -4,7 +4,7 @@ PyTransformer is a collection of Python scripts for transforming data and automa
 
 ## Features
 
-- **Data Conversion**: Easy conversion between common data formats like PDF and MP4 to test files.
+- **Data Conversion**: Easy conversion between common data formats like PDF and MP4 to text files.
 - **Data Processing**: Streamline transformation processes for files and directory of files.
 - **Automation**: Automate repetitive tasks and pipelines for handling large datasets.
 
