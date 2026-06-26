@@ -1,0 +1,24 @@
+# Normalize text files across operating systems.
+* text=auto
+
+# Keep project text files on LF line endings.
+*.md text eol=lf
+*.py text eol=lf
+*.toml text eol=lf
+*.txt text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+Makefile text eol=lf
+
+# Treat binary media and document fixtures as binary.
+*.gif binary
+*.ico binary
+*.jpg binary
+*.jpeg binary
+*.mov binary
+*.mp3 binary
+*.mp4 binary
+*.pdf binary
+*.png binary
+*.wav binary
+*.webp binary

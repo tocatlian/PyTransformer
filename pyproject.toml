@@ -1,0 +1,180 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pytransformer"
+description = "Command-line utilities for transforming PDFs, MP4 files, JPEG metadata, filenames, and text files."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+dynamic = ["version"]
+authors = [
+    { name = "Paul Tocatlian" },
+]
+maintainers = [
+    { name = "Paul Tocatlian" },
+]
+keywords = [
+    "pdf",
+    "mp4",
+    "jpeg",
+    "metadata",
+    "transcription",
+    "cli",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Multimedia",
+    "Topic :: Office/Business",
+    "Topic :: Utilities",
+    "Typing :: Typed",
+]
+dependencies = []
+
+[project.optional-dependencies]
+pdf = [
+    "pymupdf>=1.24",
+    "pypdf>=4.0",
+]
+jpeg = [
+    "defusedxml>=0.7",
+    "pillow>=10.0",
+]
+mp4 = [
+    "moviepy>=1.0",
+    "SpeechRecognition>=3.10",
+]
+ocr = [
+    "pytesseract>=0.3",
+]
+all = [
+    "defusedxml>=0.7",
+    "moviepy>=1.0",
+    "pillow>=10.0",
+    "pymupdf>=1.24",
+    "pypdf>=4.0",
+    "pytesseract>=0.3",
+    "SpeechRecognition>=3.10",
+]
+dev = [
+    "build>=1.2",
+    "coverage>=7.6",
+    "mypy>=1.13",
+    "pre-commit>=4.0",
+    "ruff>=0.8",
+    "twine>=5.1",
+]
+
+[project.urls]
+Changelog = "https://github.com/tocatlian/PyTransformer/blob/main/CHANGELOG.md"
+Documentation = "https://github.com/tocatlian/PyTransformer#readme"
+Homepage = "https://github.com/tocatlian/PyTransformer"
+Issues = "https://github.com/tocatlian/PyTransformer/issues"
+Repository = "https://github.com/tocatlian/PyTransformer"
+
+[project.scripts]
+pyt-files-append-folder-name = "pytransformer.cli.pyt_files_append_folder_name:main"
+pyt-help = "pytransformer.cli.pyt_help:main"
+pyt-jpeg-show-metadata = "pytransformer.cli.pyt_jpeg_show_metadata:main"
+pyt-jpeg-strip-metadata = "pytransformer.cli.pyt_jpeg_strip_metadata:main"
+pyt-jpeg-count-variants = "pytransformer.cli.pyt_jpeg_count_variants:main"
+pyt-mp4-split-chunks = "pytransformer.cli.pyt_mp4_split_chunks:main"
+pyt-mp4-transcribe-batch = "pytransformer.cli.pyt_mp4_transcribe_batch:main"
+pyt-mp4-transcribe = "pytransformer.cli.pyt_mp4_transcribe:main"
+pyt-pdf-extract-selectable-text-batch = "pytransformer.cli.pyt_pdf_extract_selectable_text_batch:main"
+pyt-pdf-extract-selectable-text = "pytransformer.cli.pyt_pdf_extract_selectable_text:main"
+pyt-pdf-render-jpeg = "pytransformer.cli.pyt_pdf_render_jpeg:main"
+pyt-pdf-extract-text = "pytransformer.cli.pyt_pdf_extract_text:main"
+pyt-text-concatenate = "pytransformer.cli.pyt_text_concatenate:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+pytransformer = ["py.typed"]
+
+[tool.setuptools.dynamic]
+version = { attr = "pytransformer.__version__" }
+
+[tool.ruff]
+line-length = 120
+src = ["src", "tests"]
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "B",
+    "E",
+    "F",
+    "I",
+    "RUF",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E402"]
+
+[tool.coverage.run]
+source = ["pytransformer"]
+
+[tool.coverage.report]
+fail_under = 42
+show_missing = true
+skip_covered = true
+exclude_also = [
+    "if __name__ == .__main__.:",
+    "raise SystemExit\\(main\\(\\)\\)",
+]
+
+[tool.mypy]
+python_version = "3.10"
+files = [
+    "src",
+    "tests",
+]
+check_untyped_defs = true
+disallow_incomplete_defs = true
+no_implicit_optional = true
+pretty = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = [
+    "defusedxml",
+    "fitz",
+    "moviepy",
+    "moviepy.editor",
+    "PIL",
+    "pypdf",
+    "PyPDF2",
+    "pytesseract",
+    "speech_recognition",
+]
+ignore_missing_imports = true
+
+[tool.pytransformer]
+command_modules = [
+    "pyt_files_append_folder_name",
+    "pyt_jpeg_show_metadata",
+    "pyt_jpeg_strip_metadata",
+    "pyt_jpeg_count_variants",
+    "pyt_mp4_split_chunks",
+    "pyt_mp4_transcribe_batch",
+    "pyt_mp4_transcribe",
+    "pyt_pdf_extract_selectable_text_batch",
+    "pyt_pdf_extract_selectable_text",
+    "pyt_pdf_render_jpeg",
+    "pyt_pdf_extract_text",
+    "pyt_text_concatenate",
+]

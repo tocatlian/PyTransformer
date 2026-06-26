@@ -1,0 +1,52 @@
+name: Bug report
+description: Report a reproducible problem in PyTransformer.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a problem. Please remove private metadata or sensitive content from examples before attaching files.
+  - type: input
+    id: command
+    attributes:
+      label: Command or module
+      description: Which PyTransformer command or module is affected?
+      placeholder: pytransformer-pdf-to-txt
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: What happened?
+      description: Describe the actual behavior and the expected behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Include the exact command and a minimal safe fixture if possible.
+      placeholder: |
+        1. Run ...
+        2. See ...
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include Python version, OS, PyTransformer version, and optional dependencies.
+      placeholder: |
+        Python:
+        OS:
+        PyTransformer:
+        Dependencies:
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or output
+      description: Paste relevant terminal output. Remove secrets, private paths, or private metadata.
+      render: shell
