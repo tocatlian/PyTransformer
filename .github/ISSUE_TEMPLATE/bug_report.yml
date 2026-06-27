@@ -12,7 +12,7 @@ body:
     attributes:
       label: Command or module
       description: Which PyTransformer command or module is affected?
-      placeholder: pytransformer-pdf-to-txt
+      placeholder: pyt-pdf-extract-text
     validations:
       required: true
   - type: textarea

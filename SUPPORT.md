@@ -13,7 +13,7 @@ Use GitHub issues for:
 
 Please include:
 
-- The exact `pytransformer-*` command or Python module.
+- The exact `pyt-*` command or Python module.
 - Python version and operating system.
 - Installed optional dependency group, such as `.[pdf]` or `.[jpeg]`.
 - A minimal command that reproduces the issue.

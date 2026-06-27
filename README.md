@@ -22,6 +22,24 @@ For development:
 python3 -m pip install -e ".[dev]"
 ```
 
+## Quick Start
+
+After installing from a checkout, confirm the command inventory:
+
+```bash
+pyt-help --with-modules
+```
+
+Try a command that uses only the Python standard library:
+
+```bash
+mkdir -p /tmp/pytransformer-demo/texts
+printf 'alpha\n' > /tmp/pytransformer-demo/texts/a.txt
+printf 'beta\n' > /tmp/pytransformer-demo/texts/b.txt
+pyt-text-concatenate --output /tmp/pytransformer-demo/combined.txt /tmp/pytransformer-demo/texts
+cat /tmp/pytransformer-demo/combined.txt
+```
+
 ## Dependency Groups
 
 The base install has no runtime dependencies and supports these standard-library commands:

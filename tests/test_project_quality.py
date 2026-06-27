@@ -195,6 +195,13 @@ class ProjectQualityTests(unittest.TestCase):
                 self.assertIn(f"{module_name}.py", readme)
                 self.assertIn(console_command, readme)
 
+    def test_readme_includes_standard_library_quick_start(self) -> None:
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+
+        self.assertIn("## Quick Start", readme)
+        self.assertIn("pyt-help --with-modules", readme)
+        self.assertIn("pyt-text-concatenate", readme)
+
     def test_command_docs_mention_every_console_command(self) -> None:
         command_docs = (ROOT / "docs" / "commands.md").read_text(encoding="utf-8")
         for console_command in CONSOLE_COMMANDS:
@@ -232,6 +239,7 @@ class ProjectQualityTests(unittest.TestCase):
             with self.subTest(fragment=fragment):
                 self.assertIn(fragment, pyproject)
         self.assertTrue((SRC / "pytransformer" / "py.typed").exists())
+        self.assertNotIn("Development Status :: 3 - Alpha", pyproject)
 
     def test_makefile_includes_public_validation_targets(self) -> None:
         makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
@@ -263,6 +271,31 @@ class ProjectQualityTests(unittest.TestCase):
             if not path.is_file():
                 continue
             content = path.read_text(encoding="utf-8")
+            for fragment in forbidden_fragments:
+                with self.subTest(path=relative_path, fragment=fragment):
+                    self.assertNotIn(fragment, content)
+
+    def test_current_public_docs_use_current_command_prefix(self) -> None:
+        public_files = [
+            ".github/ISSUE_TEMPLATE/bug_report.yml",
+            ".github/ISSUE_TEMPLATE/feature_request.yml",
+            ".github/pull_request_template.md",
+            "CONTRIBUTING.md",
+            "README.md",
+            "SECURITY.md",
+            "SUPPORT.md",
+            "docs/architecture.md",
+            "docs/commands.md",
+            "docs/privacy.md",
+        ]
+        forbidden_fragments = [
+            "pre-1.0",
+            "pytransformer-*",
+            "pytransformer-pdf-to-txt",
+        ]
+
+        for relative_path in public_files:
+            content = (ROOT / relative_path).read_text(encoding="utf-8")
             for fragment in forbidden_fragments:
                 with self.subTest(path=relative_path, fragment=fragment):
                     self.assertNotIn(fragment, content)

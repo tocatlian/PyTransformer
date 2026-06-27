@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-PyTransformer is pre-1.0 software. Security fixes are handled on the latest public release and the default development branch.
+PyTransformer uses semantic versioning. Security fixes are handled on the latest public release and the default development branch.
 
 ## Reporting a Vulnerability
 
