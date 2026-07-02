@@ -1,13 +1,47 @@
 .DS_Store
+.AppleDouble
+.LSOverride
+
+# Python bytecode and caches
 __pycache__/
 *.py[cod]
+
+# Local environments and machine-specific settings
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+env/
+ENV/
+.python-version
+
+# Secrets, certificates, and local data exports
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.csr
+*.sqlite
+*.sqlite3
+*.db
+*.dump
+*.sql
+
+# Logs, temporary files, and generated command output
 *.log
+*.tmp
+*.temp
+*.bak
+*.orig
 *_chunks/
 *_images_*/
 *_stripped/
-*.tmp
-*.temp
+
+# Test, type-check, and packaging output
 .coverage
+coverage.xml
 .eggs/
 .hypothesis/
 .mypy_cache/
@@ -15,7 +49,6 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .tox/
-.venv/
 build/
 dist/
 htmlcov/
@@ -23,3 +56,18 @@ pip-wheel-metadata/
 wheelhouse/
 *.egg-info/
 src/*.egg-info/
+
+# Archives and installer artifacts
+*.7z
+*.dmg
+*.gz
+*.rar
+*.tar
+*.tgz
+*.zip
+
+# Editor and IDE folders
+.idea/
+.vscode/
+*.swp
+*.swo

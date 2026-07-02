@@ -6,6 +6,15 @@ This project follows the spirit of [Keep a Changelog](https://keepachangelog.com
 
 ## [Unreleased]
 
+### Added
+
+- Added tox environments for local CI-style checks.
+- Added optional PDF and JPEG smoke targets with generated fixtures.
+
+### Fixed
+
+- Removed copied Pillow image info when writing stripped JPEGs so JPEG comments are not preserved in cleaned output.
+
 ## [1.0.0] - 2026-06-26
 
 ### Added

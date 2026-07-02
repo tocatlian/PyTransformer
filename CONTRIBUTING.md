@@ -68,6 +68,8 @@ make type-check
 make coverage
 make hooks
 make smoke
+make smoke-pdf
+make smoke-jpeg
 make clean
 ```
 
@@ -81,6 +83,15 @@ python3 -m pre_commit install
 
 If optional dependencies are installed, also run the relevant media/PDF/JPEG command manually against a small fixture and confirm the output is correct.
 
+For isolated local checks that mirror CI-style environments, run:
+
+```bash
+python3 -m tox
+python3 -m tox -e smoke-pdf,smoke-jpeg
+```
+
+The optional smoke environments install the matching package extras and use generated fixtures, so they are useful before changing PDF or JPEG command behavior.
+
 ## Release Checklist
 
 Before uploading the repository publicly, tagging a release, or opening a release pull request, run:
@@ -91,6 +102,8 @@ make validate
 make coverage
 make hooks
 make smoke
+make smoke-pdf
+make smoke-jpeg
 make clean
 ```
 

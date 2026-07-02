@@ -63,7 +63,7 @@ python3 -m pip install -e ".[all]"
 - `.[mp4]` installs `moviepy` and `SpeechRecognition`; MP4 commands also require FFmpeg, and transcription uses network access.
 - `.[ocr]` installs `pytesseract`; OCR fallback also requires a system Tesseract installation.
 - `.[all]` installs every optional runtime dependency group.
-- `.[dev]` installs build, coverage, type-checking, linting, pre-commit, and package-checking tools.
+- `.[dev]` installs build, coverage, type-checking, linting, pre-commit, tox, and package-checking tools.
 
 ## Validation
 
@@ -75,6 +75,8 @@ make lint
 make coverage
 make hooks
 make smoke
+make smoke-pdf
+make smoke-jpeg
 make clean
 ```
 
@@ -84,7 +86,18 @@ make clean
 
 `make smoke` runs representative standard-library commands against temporary fixtures. It avoids optional PDF/JPEG/MP4 dependencies.
 
+`make smoke-pdf` and `make smoke-jpeg` run generated-fixture checks for optional PDF and JPEG commands. Install the matching extras first with `python3 -m pip install -e ".[pdf]"` or `python3 -m pip install -e ".[jpeg]"`.
+
 `make hooks` runs the repository's pre-commit hooks across all files from inside a git checkout. It is useful before opening a pull request.
+
+For local CI-style isolation, install the development extra and run:
+
+```bash
+python3 -m tox
+python3 -m tox -e smoke-pdf,smoke-jpeg
+```
+
+The default tox environments run the Python version matrix when those interpreters are available, plus linting, type-checking, package build checks, and the standard-library smoke test. The optional PDF and JPEG smoke environments are opt-in because they install optional runtime dependencies.
 
 ## Naming Standard
 

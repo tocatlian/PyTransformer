@@ -113,6 +113,7 @@ def save_with_color_and_quality_preserved(
         working_image = image_ops.exif_transpose(image) if preserve_visual_orientation else image
         clean = _to_saveable_image(working_image)
         try:
+            clean.info.clear()
             save_kwargs: dict[str, Any] = {
                 "format": "JPEG",
                 "exif": b"",

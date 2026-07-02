@@ -48,6 +48,7 @@ PUBLIC_REPOSITORY_FILES = [
     "docs/commands.md",
     "docs/privacy.md",
     "pyproject.toml",
+    "tox.ini",
 ]
 
 
@@ -232,6 +233,7 @@ class ProjectQualityTests(unittest.TestCase):
             "mypy>=1.13",
             "pre-commit>=4.0",
             "twine>=5.1",
+            "tox>=4.19",
             "[tool.coverage.run]",
             "[tool.mypy]",
         ]
@@ -251,6 +253,11 @@ class ProjectQualityTests(unittest.TestCase):
             "hooks",
             "entrypoint-check",
             "build-check",
+            "tox",
+            "smoke-optional",
+            "smoke-pdf",
+            "smoke-jpeg",
+            "validate-all",
         ]:
             with self.subTest(target=target):
                 self.assertIn(f"{target}:", makefile)

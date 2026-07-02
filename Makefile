@@ -29,11 +29,12 @@ CONSOLE_COMMANDS := \
 	pyt-pdf-extract-text \
 	pyt-text-concatenate
 
-.PHONY: help validate compile lint format-check type-check coverage hook-config-check hooks help-check entrypoint-check test build-check smoke clean
+.PHONY: help validate validate-all compile lint format-check type-check coverage hook-config-check hooks help-check entrypoint-check test build-check tox smoke smoke-optional smoke-pdf smoke-jpeg clean
 
 help:
 	@printf '%s\n' 'Available targets:'
 	@printf '%s\n' '  make validate    Run compile, lint, format, help, entrypoint, test, and build checks.'
+	@printf '%s\n' '  make validate-all Run validate plus optional dependency smoke checks.'
 	@printf '%s\n' '  make compile     Compile package and tests.'
 	@printf '%s\n' '  make lint        Run Ruff lint checks.'
 	@printf '%s\n' '  make format-check Check Ruff formatting.'
@@ -45,10 +46,16 @@ help:
 	@printf '%s\n' '  make entrypoint-check Verify installed console commands expose --help.'
 	@printf '%s\n' '  make test        Run the standard-library unittest suite.'
 	@printf '%s\n' '  make build-check Build sdist/wheel in a temp folder and verify metadata.'
+	@printf '%s\n' '  make tox         Run the configured tox environments.'
 	@printf '%s\n' '  make smoke       Run representative standard-library commands on temp fixtures.'
+	@printf '%s\n' '  make smoke-optional Run optional PDF and JPEG smoke checks.'
+	@printf '%s\n' '  make smoke-pdf   Run PDF commands against a generated fixture; requires .[pdf].'
+	@printf '%s\n' '  make smoke-jpeg  Run JPEG commands against generated fixtures; requires .[jpeg].'
 	@printf '%s\n' '  make clean       Remove local Python/cache/build artifacts.'
 
 validate: compile lint format-check type-check hook-config-check help-check entrypoint-check test coverage build-check
+
+validate-all: validate smoke-optional
 
 compile:
 	$(PYTHON) -m compileall -q src tests
@@ -110,6 +117,9 @@ build-check:
 	fi; \
 	$(PYTHON) -m twine check "$$tmpdir"/*.tar.gz "$$tmpdir"/*.whl
 
+tox:
+	$(PYTHON) -m tox
+
 smoke:
 	@tmpdir="$$(mktemp -d)"; \
 	trap 'rm -rf "$$tmpdir"' EXIT; \
@@ -125,7 +135,36 @@ smoke:
 	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytransformer.cli.pyt_files_append_folder_name --dry-run "$$tmpdir/rename/Tokyo"; \
 	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytransformer.cli.pyt_files_append_folder_name --yes "$$tmpdir/rename/Tokyo"
 
+smoke-optional: smoke-pdf smoke-jpeg
+
+smoke-pdf:
+	@tmpdir="$$(mktemp -d)"; \
+	trap 'rm -rf "$$tmpdir"' EXIT; \
+	mkdir -p "$$tmpdir/pdfs" "$$tmpdir/batch-text" "$$tmpdir/rendered"; \
+	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -c 'import sys; from pathlib import Path; import fitz; pdf_path = Path(sys.argv[1]); doc = fitz.open(); page = doc.new_page(); page.insert_text((72, 72), "PyTransformer PDF smoke fixture"); doc.save(pdf_path); doc.close()' "$$tmpdir/pdfs/sample.pdf"; \
+	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytransformer.cli.pyt_pdf_extract_selectable_text --output "$$tmpdir/selectable.txt" "$$tmpdir/pdfs/sample.pdf"; \
+	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytransformer.cli.pyt_pdf_extract_selectable_text_batch --output-folder "$$tmpdir/batch-text" "$$tmpdir/pdfs"; \
+	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytransformer.cli.pyt_pdf_extract_text --no-ocr --output "$$tmpdir/extracted.txt" "$$tmpdir/pdfs/sample.pdf"; \
+	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytransformer.cli.pyt_pdf_render_jpeg --dpi 72 --quality 75 --output-folder "$$tmpdir/rendered" "$$tmpdir/pdfs/sample.pdf"; \
+	test -s "$$tmpdir/selectable.txt"; \
+	test -s "$$tmpdir/batch-text/sample.txt"; \
+	test -s "$$tmpdir/extracted.txt"; \
+	test -f "$$tmpdir/rendered/page_1.jpg"
+
+smoke-jpeg:
+	@tmpdir="$$(mktemp -d)"; \
+	trap 'rm -rf "$$tmpdir"' EXIT; \
+	mkdir -p "$$tmpdir/images" "$$tmpdir/clean"; \
+	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -c 'import sys; from pathlib import Path; from PIL import Image; folder = Path(sys.argv[1]); exif = Image.Exif(); exif[0x010F] = "PyTransformer"; exif[0x0131] = "Smoke"; colors = {"photo-warm.jpg": (220, 120, 90), "photo-cool.jpg": (70, 130, 210)}; [Image.new("RGB", (24, 24), color).save(folder / name, "JPEG", exif=exif, comment=b"private smoke comment") for name, color in colors.items()]' "$$tmpdir/images"; \
+	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytransformer.cli.pyt_jpeg_show_metadata "$$tmpdir/images/photo-warm.jpg"; \
+	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytransformer.cli.pyt_jpeg_count_variants --list-presets "$$tmpdir/images"; \
+	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytransformer.cli.pyt_jpeg_strip_metadata --quiet --output-folder "$$tmpdir/clean" "$$tmpdir/images"; \
+	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytransformer.cli.pyt_jpeg_show_metadata "$$tmpdir/clean/photo-warm.jpg"; \
+	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -c 'import sys; from pathlib import Path; from pytransformer.core.jpeg_metadata import inspect_embedded_metadata; metadata = inspect_embedded_metadata(Path(sys.argv[1])); leftovers = sorted(key for key in metadata if key.startswith("EXIF.") or key == "INFO.comment"); sys.exit(f"metadata was not stripped: {leftovers}") if leftovers else None' "$$tmpdir/clean/photo-warm.jpg"; \
+	test -f "$$tmpdir/clean/photo-warm.jpg"; \
+	test -f "$$tmpdir/clean/photo-cool.jpg"
+
 clean:
 	rm -rf __pycache__ tests/__pycache__ src/pytransformer/__pycache__ src/pytransformer/cli/__pycache__ src/pytransformer/core/__pycache__
-	rm -rf .coverage coverage.xml .pytest_cache .mypy_cache .ruff_cache build dist htmlcov pip-wheel-metadata *.egg-info src/*.egg-info
+	rm -rf .coverage coverage.xml .pytest_cache .mypy_cache .ruff_cache .tox build dist htmlcov pip-wheel-metadata *.egg-info src/*.egg-info
 	find . -name '*.pyc' -delete
