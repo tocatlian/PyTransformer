@@ -34,6 +34,7 @@ PUBLIC_REPOSITORY_FILES = [
     ".github/dependabot.yml",
     ".github/pull_request_template.md",
     ".github/workflows/ci.yml",
+    ".github/workflows/pages.yml",
     ".gitignore",
     ".pre-commit-config.yaml",
     "CHANGELOG.md",
