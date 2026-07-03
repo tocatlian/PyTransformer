@@ -12,6 +12,12 @@ Command names follow their module names: `pyt_domain_verb_object[_batch].py` bec
 
 Lists available PyTransformer console commands.
 
+Display modes:
+
+- Default: command names with short descriptions.
+- `--terse`: command names only, one per line.
+- `--verbose`: command names, descriptions, and Python module filenames.
+
 Use when:
 
 - You want to see every installed `pyt-*` command.

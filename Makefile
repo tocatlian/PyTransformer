@@ -29,11 +29,11 @@ CONSOLE_COMMANDS := \
 	pyt-pdf-extract-text \
 	pyt-text-concatenate
 
-.PHONY: help validate validate-all compile lint format-check type-check coverage hook-config-check hooks help-check entrypoint-check test build-check tox smoke smoke-optional smoke-pdf smoke-jpeg clean
+.PHONY: help validate validate-all compile lint format-check type-check coverage hook-config-check hooks help-check entrypoint-check docs docs-check docs-watch test build-check tox smoke smoke-optional smoke-pdf smoke-jpeg clean
 
 help:
 	@printf '%s\n' 'Available targets:'
-	@printf '%s\n' '  make validate    Run compile, lint, format, help, entrypoint, test, and build checks.'
+	@printf '%s\n' '  make validate    Run compile, lint, format, docs, help, entrypoint, test, and build checks.'
 	@printf '%s\n' '  make validate-all Run validate plus optional dependency smoke checks.'
 	@printf '%s\n' '  make compile     Compile package and tests.'
 	@printf '%s\n' '  make lint        Run Ruff lint checks.'
@@ -44,6 +44,9 @@ help:
 	@printf '%s\n' '  make hooks       Run pre-commit hooks across the repository.'
 	@printf '%s\n' '  make help-check  Verify every command module exposes --help.'
 	@printf '%s\n' '  make entrypoint-check Verify installed console commands expose --help.'
+	@printf '%s\n' '  make docs        Build static HTML documentation from markdown.'
+	@printf '%s\n' '  make docs-check  Verify generated HTML documentation is current.'
+	@printf '%s\n' '  make docs-watch  Rebuild HTML documentation when markdown changes.'
 	@printf '%s\n' '  make test        Run the standard-library unittest suite.'
 	@printf '%s\n' '  make build-check Build sdist/wheel in a temp folder and verify metadata.'
 	@printf '%s\n' '  make tox         Run the configured tox environments.'
@@ -53,7 +56,7 @@ help:
 	@printf '%s\n' '  make smoke-jpeg  Run JPEG commands against generated fixtures; requires .[jpeg].'
 	@printf '%s\n' '  make clean       Remove local Python/cache/build artifacts.'
 
-validate: compile lint format-check type-check hook-config-check help-check entrypoint-check test coverage build-check
+validate: compile lint format-check type-check hook-config-check docs-check help-check entrypoint-check test coverage build-check
 
 validate-all: validate smoke-optional
 
@@ -99,6 +102,15 @@ entrypoint-check:
 		printf 'checking %s --help\n' "$$command_name"; \
 		"$$command_path" --help >/dev/null; \
 	done
+
+docs:
+	$(PYTHON) scripts/build_docs.py
+
+docs-check:
+	$(PYTHON) scripts/build_docs.py --check
+
+docs-watch:
+	$(PYTHON) scripts/build_docs.py --watch
 
 test:
 	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m unittest discover -s tests -v

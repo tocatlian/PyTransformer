@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Command Guide - PyTransformer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="site-shell">
+<nav class="site-nav" aria-label="Documentation navigation"><a class="brand" href="index.html">PyTransformer</a>
+<p class="tagline">HTML docs generated from markdown.</p>
+<p class="nav-section-title">Docs</p>
+<ul class="nav-list">
+<li><a href="index.html">Home</a></li>
+<li><a href="commands.html" aria-current="page">Commands</a></li>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="privacy.html">Privacy</a></li>
+</ul>
+<p class="nav-section-title">Command Pages</p>
+<ul class="nav-list">
+<li><a href="commands/pyt-help.html">pyt-help</a></li>
+<li><a href="commands/pyt-pdf-extract-text.html">pyt-pdf-extract-text</a></li>
+<li><a href="commands/pyt-pdf-extract-selectable-text.html">pyt-pdf-extract-selectable-text</a></li>
+<li><a href="commands/pyt-pdf-extract-selectable-text-batch.html">pyt-pdf-extract-selectable-text-batch</a></li>
+<li><a href="commands/pyt-pdf-render-jpeg.html">pyt-pdf-render-jpeg</a></li>
+<li><a href="commands/pyt-mp4-split-chunks.html">pyt-mp4-split-chunks</a></li>
+<li><a href="commands/pyt-mp4-transcribe.html">pyt-mp4-transcribe</a></li>
+<li><a href="commands/pyt-mp4-transcribe-batch.html">pyt-mp4-transcribe-batch</a></li>
+<li><a href="commands/pyt-jpeg-show-metadata.html">pyt-jpeg-show-metadata</a></li>
+<li><a href="commands/pyt-jpeg-strip-metadata.html">pyt-jpeg-strip-metadata</a></li>
+<li><a href="commands/pyt-jpeg-count-variants.html">pyt-jpeg-count-variants</a></li>
+<li><a href="commands/pyt-files-append-folder-name.html">pyt-files-append-folder-name</a></li>
+<li><a href="commands/pyt-text-concatenate.html">pyt-text-concatenate</a></li>
+</ul></nav>
+<main class="site-main">
+<article class="content">
+<p class="source-note">Generated from docs/commands.md.</p>
+<h1 id="command-guide">Command Guide</h1>
+<p>PyTransformer exposes installed console commands through <code>pyproject.toml</code>. Each command also has an importable Python module under <code>pytransformer.cli</code>.</p>
+<p>Every command supports <code>-h</code>/<code>--help</code>. Help output describes the command, lists positional and optional arguments, and ends with an <code>Examples:</code> section showing installed command invocations.</p>
+<p>Command names follow their module names: <code>pyt_domain_verb_object[_batch].py</code> becomes <code>pyt-domain-verb-object[-batch]</code>. The command inventory module <code>pyt_help.py</code> is exposed as <code>pyt-help</code>.</p>
+<h2 id="command-pages">Command Pages</h2>
+<ul class="command-card-grid"><li><a href="commands/pyt-help.html"><code>pyt-help</code><span>Discovery Command</span></a></li><li><a href="commands/pyt-pdf-extract-text.html"><code>pyt-pdf-extract-text</code><span>PDF Commands</span></a></li><li><a href="commands/pyt-pdf-extract-selectable-text.html"><code>pyt-pdf-extract-selectable-text</code><span>PDF Commands</span></a></li><li><a href="commands/pyt-pdf-extract-selectable-text-batch.html"><code>pyt-pdf-extract-selectable-text-batch</code><span>PDF Commands</span></a></li><li><a href="commands/pyt-pdf-render-jpeg.html"><code>pyt-pdf-render-jpeg</code><span>PDF Commands</span></a></li><li><a href="commands/pyt-mp4-split-chunks.html"><code>pyt-mp4-split-chunks</code><span>MP4 Commands</span></a></li><li><a href="commands/pyt-mp4-transcribe.html"><code>pyt-mp4-transcribe</code><span>MP4 Commands</span></a></li><li><a href="commands/pyt-mp4-transcribe-batch.html"><code>pyt-mp4-transcribe-batch</code><span>MP4 Commands</span></a></li><li><a href="commands/pyt-jpeg-show-metadata.html"><code>pyt-jpeg-show-metadata</code><span>JPEG Commands</span></a></li><li><a href="commands/pyt-jpeg-strip-metadata.html"><code>pyt-jpeg-strip-metadata</code><span>JPEG Commands</span></a></li><li><a href="commands/pyt-jpeg-count-variants.html"><code>pyt-jpeg-count-variants</code><span>JPEG Commands</span></a></li><li><a href="commands/pyt-files-append-folder-name.html"><code>pyt-files-append-folder-name</code><span>File And Text Commands</span></a></li><li><a href="commands/pyt-text-concatenate.html"><code>pyt-text-concatenate</code><span>File And Text Commands</span></a></li></ul>
+<h2 id="discovery-command">Discovery Command</h2>
+<h3 id="pyt-help"><code>pyt-help</code> <a class="command-page-link" href="commands/pyt-help.html">Command page</a></h3>
+<p>Lists available PyTransformer console commands.</p>
+<p>Display modes:</p>
+<ul><li>Default: command names with short descriptions.</li><li><code>--terse</code>: command names only, one per line.</li><li><code>--verbose</code>: command names, descriptions, and Python module filenames.</li></ul>
+<p>Use when:</p>
+<ul><li>You want to see every installed <code>pyt-*</code> command.</li><li>You want command names only for shell scripting.</li><li>You want to map console commands back to Python module files.</li></ul>
+<p>Writes:</p>
+<ul><li>Nothing. This command is read-only.</li></ul>
+<p>Dependencies:</p>
+<ul><li>Python standard library only.</li></ul>
+<h2 id="pdf-commands">PDF Commands</h2>
+<p>Single-file commands use <code>-o</code>/<code>--output</code> when they write one file. Commands that write a folder of generated files use <code>-o</code>/<code>--output-folder</code>.</p>
+<h3 id="pyt-pdf-extract-text"><code>pyt-pdf-extract-text</code> <a class="command-page-link" href="commands/pyt-pdf-extract-text.html">Command page</a></h3>
+<p>Extracts text from one PDF with optional OCR fallback for image-only pages.</p>
+<p>Use when:</p>
+<ul><li>A PDF may contain scanned pages.</li><li>You want a log of extraction progress.</li><li>OCR fallback is acceptable for pages without a text layer.</li></ul>
+<p>Writes:</p>
+<ul><li>A UTF-8 <code>.txt</code> file.</li><li>An extraction log next to the input PDF.</li></ul>
+<p>Dependencies:</p>
+<ul><li><code>.[pdf]</code></li><li><code>.[ocr]</code>, Pillow, pytesseract, and system Tesseract for OCR fallback.</li></ul>
+<h3 id="pyt-pdf-extract-selectable-text"><code>pyt-pdf-extract-selectable-text</code> <a class="command-page-link" href="commands/pyt-pdf-extract-selectable-text.html">Command page</a></h3>
+<p>Extracts selectable text from one PDF using a lightweight parser.</p>
+<p>Use when:</p>
+<ul><li>The PDF already has a text layer.</li><li>OCR is not needed.</li></ul>
+<p>Writes:</p>
+<ul><li>One UTF-8 <code>.txt</code> file.</li></ul>
+<p>Dependencies:</p>
+<ul><li><code>.[pdf]</code></li></ul>
+<h3 id="pyt-pdf-extract-selectable-text-batch"><code>pyt-pdf-extract-selectable-text-batch</code> <a class="command-page-link" href="commands/pyt-pdf-extract-selectable-text-batch.html">Command page</a></h3>
+<p>Extracts selectable text from every PDF directly inside a folder.</p>
+<p>Use when:</p>
+<ul><li>You have a flat folder of text-layer PDFs.</li><li>You want one transcript per PDF.</li></ul>
+<p>Writes:</p>
+<ul><li>One UTF-8 <code>.txt</code> file per PDF.</li></ul>
+<p>Dependencies:</p>
+<ul><li><code>.[pdf]</code></li></ul>
+<h3 id="pyt-pdf-render-jpeg"><code>pyt-pdf-render-jpeg</code> <a class="command-page-link" href="commands/pyt-pdf-render-jpeg.html">Command page</a></h3>
+<p>Renders every page of one PDF as JPEG images.</p>
+<p>Use when:</p>
+<ul><li>PDF pages need to be reviewed or processed as images.</li><li>A downstream workflow expects JPEG files.</li></ul>
+<p>Writes:</p>
+<ul><li>Numbered <code>page_*.jpg</code> files.</li><li>A timestamped sibling folder by default, or the folder passed with <code>--output-folder</code>.</li></ul>
+<p>Dependencies:</p>
+<ul><li><code>.[pdf]</code></li></ul>
+<h2 id="mp4-commands">MP4 Commands</h2>
+<h3 id="pyt-mp4-split-chunks"><code>pyt-mp4-split-chunks</code> <a class="command-page-link" href="commands/pyt-mp4-split-chunks.html">Command page</a></h3>
+<p>Splits one MP4 into fixed-length chunks.</p>
+<p>Writes:</p>
+<ul><li>Numbered MP4 chunk files in a sibling or requested output folder.</li></ul>
+<p>Dependencies:</p>
+<ul><li><code>.[mp4]</code></li><li>FFmpeg.</li></ul>
+<h3 id="pyt-mp4-transcribe"><code>pyt-mp4-transcribe</code> <a class="command-page-link" href="commands/pyt-mp4-transcribe.html">Command page</a></h3>
+<p>Transcribes one MP4 file to text through Google Web Speech API.</p>
+<p>Writes:</p>
+<ul><li>One transcript <code>.txt</code> file.</li></ul>
+<p>Dependencies:</p>
+<ul><li><code>.[mp4]</code></li><li>FFmpeg.</li><li>Network access.</li></ul>
+<h3 id="pyt-mp4-transcribe-batch"><code>pyt-mp4-transcribe-batch</code> <a class="command-page-link" href="commands/pyt-mp4-transcribe-batch.html">Command page</a></h3>
+<p>Transcribes MP4 files directly inside a folder.</p>
+<p>Writes:</p>
+<ul><li>One transcript <code>.txt</code> file per MP4.</li></ul>
+<p>Dependencies:</p>
+<ul><li><code>.[mp4]</code></li><li>FFmpeg.</li><li>Network access.</li></ul>
+<h2 id="jpeg-commands">JPEG Commands</h2>
+<h3 id="pyt-jpeg-show-metadata"><code>pyt-jpeg-show-metadata</code> <a class="command-page-link" href="commands/pyt-jpeg-show-metadata.html">Command page</a></h3>
+<p>Displays metadata embedded in one JPEG.</p>
+<p>Writes:</p>
+<ul><li>Nothing. This command is read-only.</li></ul>
+<p>Dependencies:</p>
+<ul><li><code>.[jpeg]</code></li></ul>
+<h3 id="pyt-jpeg-strip-metadata"><code>pyt-jpeg-strip-metadata</code> <a class="command-page-link" href="commands/pyt-jpeg-strip-metadata.html">Command page</a></h3>
+<p>Creates cleaned JPEG copies with descriptive metadata removed.</p>
+<p>Writes:</p>
+<ul><li>Cleaned JPEG copies in a separate output folder by default.</li></ul>
+<p>Dependencies:</p>
+<ul><li><code>.[jpeg]</code></li></ul>
+<h3 id="pyt-jpeg-count-variants"><code>pyt-jpeg-count-variants</code> <a class="command-page-link" href="commands/pyt-jpeg-count-variants.html">Command page</a></h3>
+<p>Counts JPEG preset variants grouped by base filename.</p>
+<p>Hidden files are skipped by default. Pass <code>--include-hidden</code> to include dotfiles.</p>
+<p>Writes:</p>
+<ul><li>Nothing. This command is read-only.</li></ul>
+<p>Dependencies:</p>
+<ul><li>Python standard library only.</li></ul>
+<h2 id="file-and-text-commands">File And Text Commands</h2>
+<p>Folder commands that skip hidden dotfiles by default expose <code>--include-hidden</code>.</p>
+<h3 id="pyt-files-append-folder-name"><code>pyt-files-append-folder-name</code> <a class="command-page-link" href="commands/pyt-files-append-folder-name.html">Command page</a></h3>
+<p>Renames files by appending the containing folder name before the file extension.</p>
+<p>Writes:</p>
+<ul><li>Renames existing files in place.</li></ul>
+<p>Safety:</p>
+<ul><li>Supports <code>--dry-run</code>.</li><li>Requires interactive confirmation unless <code>--yes</code> is passed.</li></ul>
+<p>Dependencies:</p>
+<ul><li>Python standard library only.</li></ul>
+<h3 id="pyt-text-concatenate"><code>pyt-text-concatenate</code> <a class="command-page-link" href="commands/pyt-text-concatenate.html">Command page</a></h3>
+<p>Concatenates text files directly inside a folder into one UTF-8 text file.</p>
+<p>Writes:</p>
+<ul><li>One combined text file.</li></ul>
+<p>Dependencies:</p>
+<ul><li>Python standard library only.</li></ul>
+</article>
+</main>
+</div>
+</body>
+</html>

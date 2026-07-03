@@ -7,12 +7,12 @@ Script: pyt_help.py
 Purpose: List installed PyTransformer console commands.
 When to use: Use when you want to discover available PyTransformer terminal commands.
 Changes: Read-only; prints command names and descriptions to standard output.
-Inputs: Optional --names-only and --with-modules flags.
+Inputs: Optional --terse and --verbose display mode flags.
 Environment variables: None.
 Dependencies: Python standard library only.
 Safety notes: Does not inspect user files or modify the filesystem.
-Example: pyt-help
-Expected result: A list of available pyt-* commands.
+Example: pyt-help --verbose
+Expected result: A list of available pyt-* commands with module filenames.
 Related scripts: All pytransformer.cli command modules.
 """
 
@@ -74,8 +74,8 @@ def discover_commands() -> list[CommandInfo]:
     return sorted(commands, key=lambda command_info: command_info.command)
 
 
-def print_commands(commands: Sequence[CommandInfo], *, names_only: bool, with_modules: bool) -> None:
-    if names_only:
+def print_commands(commands: Sequence[CommandInfo], *, terse: bool, verbose: bool) -> None:
+    if terse:
         for command in commands:
             print(command.command)
         return
@@ -88,7 +88,7 @@ def print_commands(commands: Sequence[CommandInfo], *, names_only: bool, with_mo
     command_width = max(len(command.command) for command in commands)
     for command in commands:
         detail = command.description
-        if with_modules:
+        if verbose:
             detail = f"{detail} ({command.module_name}.py)" if detail else f"{command.module_name}.py"
         print(f"  {command.command.ljust(command_width)}  {detail}")
 
@@ -98,19 +98,24 @@ def build_parser() -> argparse.ArgumentParser:
         description="List available PyTransformer console commands.",
         examples=(
             "pyt-help",
-            "pyt-help --names-only",
-            "pyt-help --with-modules",
+            "pyt-help --terse",
+            "pyt-help --verbose",
         ),
     )
-    parser.add_argument(
+    display_group = parser.add_mutually_exclusive_group()
+    display_group.add_argument(
+        "--terse",
         "--names-only",
+        dest="terse",
         action="store_true",
-        help="Print only command names, one per line.",
+        help="Print only command names, one per line. --names-only is a backward-compatible alias.",
     )
-    parser.add_argument(
+    display_group.add_argument(
+        "--verbose",
         "--with-modules",
+        dest="verbose",
         action="store_true",
-        help="Include the Python module filename for each command.",
+        help="Include the Python module filename for each command. --with-modules is a backward-compatible alias.",
     )
     return parser
 
@@ -118,7 +123,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
-    print_commands(discover_commands(), names_only=args.names_only, with_modules=args.with_modules)
+    print_commands(discover_commands(), terse=args.terse, verbose=args.verbose)
     return 0
 
 

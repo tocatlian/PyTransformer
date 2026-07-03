@@ -27,7 +27,7 @@ python3 -m pip install -e ".[dev]"
 After installing from a checkout, confirm the command inventory:
 
 ```bash
-pyt-help --with-modules
+pyt-help --verbose
 ```
 
 Try a command that uses only the Python standard library:
@@ -80,7 +80,7 @@ make smoke-jpeg
 make clean
 ```
 
-`make validate` compiles the package and tests, runs Ruff lint and format checks, runs mypy, validates the pre-commit configuration, verifies module and installed-command help, runs the unit tests, checks coverage, builds source and wheel distributions in a temporary folder, and checks package metadata.
+`make validate` compiles the package and tests, runs Ruff lint and format checks, runs mypy, validates the pre-commit configuration, verifies generated HTML documentation, verifies module and installed-command help, runs the unit tests, checks coverage, builds source and wheel distributions in a temporary folder, and checks package metadata.
 
 `make coverage` runs the unit tests under coverage.py and enforces the current coverage floor.
 
@@ -126,7 +126,7 @@ This gives engineers importable Python modules and gives command-line users idio
 
 | Python module | Console command | Purpose | Example | Writes data? | Setup |
 | --- | --- | --- | --- | --- | --- |
-| `pyt_help.py` | `pyt-help` | List available PyTransformer commands. | `pyt-help --with-modules` | Read-only. | Standard library only. |
+| `pyt_help.py` | `pyt-help` | List available PyTransformer commands. | `pyt-help --verbose` | Read-only. | Standard library only. |
 | `pyt_pdf_extract_text.py` | `pyt-pdf-extract-text` | Extract PDF text with optional OCR fallback. | `pyt-pdf-extract-text --no-ocr "/path/to/file.pdf"` | Writes a `.txt` file and extraction log. | Requires `.[pdf]`; OCR also needs `.[ocr]` and Tesseract. |
 | `pyt_pdf_extract_selectable_text.py` | `pyt-pdf-extract-selectable-text` | Extract selectable PDF text with a lightweight parser. | `pyt-pdf-extract-selectable-text "/path/to/file.pdf"` | Writes a `.txt` file. | Requires `.[pdf]`. |
 | `pyt_pdf_extract_selectable_text_batch.py` | `pyt-pdf-extract-selectable-text-batch` | Batch extract selectable text from PDFs in a folder. | `pyt-pdf-extract-selectable-text-batch --output-folder "/path/to/text" "/path/to/pdfs"` | Writes one `.txt` file per PDF. | Requires `.[pdf]`. |
@@ -147,6 +147,15 @@ Detailed command notes are available in `docs/commands.md`.
 - `docs/commands.md`: command-by-command behavior and dependency notes.
 - `docs/privacy.md`: privacy risks for metadata, transcripts, logs, and generated files.
 - `docs/architecture.md`: package layout, command structure, and safety model.
+
+Static HTML documentation is generated from the markdown sources into `docs/html/`:
+
+```bash
+make docs
+make docs-watch
+```
+
+`make docs` rebuilds the HTML once. `make docs-watch` keeps rebuilding when `README.md` or `docs/*.md` changes. Each command section from `docs/commands.md` also gets its own generated page under `docs/html/commands/`.
 
 ## Safety Defaults
 

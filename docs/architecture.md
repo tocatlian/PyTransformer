@@ -52,6 +52,12 @@ Optional imports should be lazy or guarded so:
 - Missing optional packages produce direct installation guidance.
 - `make type-check` can validate the package without installing every optional runtime dependency.
 
+## Documentation Build
+
+Markdown files remain the documentation source of truth. `scripts/build_docs.py` converts `README.md` and `docs/*.md` into static HTML under `docs/html/`, and it splits the command sections in `docs/commands.md` into one generated page per console command.
+
+Use `make docs` for a one-time rebuild, `make docs-check` to verify generated HTML is current, and `make docs-watch` while editing markdown.
+
 ## Safety Model
 
 Commands should default to conservative file behavior:

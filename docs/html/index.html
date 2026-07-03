@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PyTransformer - PyTransformer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="site-shell">
+<nav class="site-nav" aria-label="Documentation navigation"><a class="brand" href="index.html">PyTransformer</a>
+<p class="tagline">HTML docs generated from markdown.</p>
+<p class="nav-section-title">Docs</p>
+<ul class="nav-list">
+<li><a href="index.html" aria-current="page">Home</a></li>
+<li><a href="commands.html">Commands</a></li>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="privacy.html">Privacy</a></li>
+</ul>
+<p class="nav-section-title">Command Pages</p>
+<ul class="nav-list">
+<li><a href="commands/pyt-help.html">pyt-help</a></li>
+<li><a href="commands/pyt-pdf-extract-text.html">pyt-pdf-extract-text</a></li>
+<li><a href="commands/pyt-pdf-extract-selectable-text.html">pyt-pdf-extract-selectable-text</a></li>
+<li><a href="commands/pyt-pdf-extract-selectable-text-batch.html">pyt-pdf-extract-selectable-text-batch</a></li>
+<li><a href="commands/pyt-pdf-render-jpeg.html">pyt-pdf-render-jpeg</a></li>
+<li><a href="commands/pyt-mp4-split-chunks.html">pyt-mp4-split-chunks</a></li>
+<li><a href="commands/pyt-mp4-transcribe.html">pyt-mp4-transcribe</a></li>
+<li><a href="commands/pyt-mp4-transcribe-batch.html">pyt-mp4-transcribe-batch</a></li>
+<li><a href="commands/pyt-jpeg-show-metadata.html">pyt-jpeg-show-metadata</a></li>
+<li><a href="commands/pyt-jpeg-strip-metadata.html">pyt-jpeg-strip-metadata</a></li>
+<li><a href="commands/pyt-jpeg-count-variants.html">pyt-jpeg-count-variants</a></li>
+<li><a href="commands/pyt-files-append-folder-name.html">pyt-files-append-folder-name</a></li>
+<li><a href="commands/pyt-text-concatenate.html">pyt-text-concatenate</a></li>
+</ul></nav>
+<main class="site-main">
+<article class="content">
+<p class="source-note">Generated from README.md.</p>
+<h1 id="pytransformer">PyTransformer</h1>
+<p><a href="https://github.com/tocatlian/PyTransformer/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/tocatlian/PyTransformer/actions/workflows/ci.yml/badge.svg"></a> <a href="../../LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg"></a> <a href="../../pyproject.toml"><img alt="Python 3.10+" src="https://img.shields.io/badge/python-3.10%2B-blue.svg"></a></p>
+<p>PyTransformer is a Python package of command-line utilities for transforming PDFs, MP4 files, JPEG metadata, filenames, and plain-text files.</p>
+<p>The project follows a standard Python <code>src/</code> layout. Internal modules use lowercase <code>snake_case</code> names so they are importable, and installed terminal commands use short hyphenated <code>pyt-*</code> names.</p>
+<h2 id="installation">Installation</h2>
+<p>From a local checkout:</p>
+<pre><code class="language-bash">python3 -m pip install -e .</code></pre>
+<p>For development:</p>
+<pre><code class="language-bash">python3 -m pip install -e &quot;.[dev]&quot;</code></pre>
+<h2 id="quick-start">Quick Start</h2>
+<p>After installing from a checkout, confirm the command inventory:</p>
+<pre><code class="language-bash">pyt-help --verbose</code></pre>
+<p>Try a command that uses only the Python standard library:</p>
+<pre><code class="language-bash">mkdir -p /tmp/pytransformer-demo/texts
+printf &#x27;alpha\n&#x27; &gt; /tmp/pytransformer-demo/texts/a.txt
+printf &#x27;beta\n&#x27; &gt; /tmp/pytransformer-demo/texts/b.txt
+pyt-text-concatenate --output /tmp/pytransformer-demo/combined.txt /tmp/pytransformer-demo/texts
+cat /tmp/pytransformer-demo/combined.txt</code></pre>
+<h2 id="dependency-groups">Dependency Groups</h2>
+<p>The base install has no runtime dependencies and supports these standard-library commands:</p>
+<ul><li><code>pyt-files-append-folder-name</code></li><li><code>pyt-jpeg-count-variants</code></li><li><code>pyt-text-concatenate</code></li></ul>
+<p>Install optional dependency groups only for the commands you need:</p>
+<pre><code class="language-bash">python3 -m pip install -e &quot;.[pdf]&quot;
+python3 -m pip install -e &quot;.[jpeg]&quot;
+python3 -m pip install -e &quot;.[mp4]&quot;
+python3 -m pip install -e &quot;.[ocr]&quot;
+python3 -m pip install -e &quot;.[all]&quot;</code></pre>
+<ul><li><code>.[pdf]</code> installs <code>pymupdf</code> and <code>pypdf</code> for PDF extraction and rendering commands.</li><li><code>.[jpeg]</code> installs <code>pillow</code> and <code>defusedxml</code> for JPEG metadata commands.</li><li><code>.[mp4]</code> installs <code>moviepy</code> and <code>SpeechRecognition</code>; MP4 commands also require FFmpeg, and transcription uses network access.</li><li><code>.[ocr]</code> installs <code>pytesseract</code>; OCR fallback also requires a system Tesseract installation.</li><li><code>.[all]</code> installs every optional runtime dependency group.</li><li><code>.[dev]</code> installs build, coverage, type-checking, linting, pre-commit, tox, and package-checking tools.</li></ul>
+<h2 id="validation">Validation</h2>
+<p>After installing the development extra, run:</p>
+<pre><code class="language-bash">make validate
+make lint
+make coverage
+make hooks
+make smoke
+make smoke-pdf
+make smoke-jpeg
+make clean</code></pre>
+<p><code>make validate</code> compiles the package and tests, runs Ruff lint and format checks, runs mypy, validates the pre-commit configuration, verifies generated HTML documentation, verifies module and installed-command help, runs the unit tests, checks coverage, builds source and wheel distributions in a temporary folder, and checks package metadata.</p>
+<p><code>make coverage</code> runs the unit tests under coverage.py and enforces the current coverage floor.</p>
+<p><code>make smoke</code> runs representative standard-library commands against temporary fixtures. It avoids optional PDF/JPEG/MP4 dependencies.</p>
+<p><code>make smoke-pdf</code> and <code>make smoke-jpeg</code> run generated-fixture checks for optional PDF and JPEG commands. Install the matching extras first with <code>python3 -m pip install -e &quot;.[pdf]&quot;</code> or <code>python3 -m pip install -e &quot;.[jpeg]&quot;</code>.</p>
+<p><code>make hooks</code> runs the repository&#x27;s pre-commit hooks across all files from inside a git checkout. It is useful before opening a pull request.</p>
+<p>For local CI-style isolation, install the development extra and run:</p>
+<pre><code class="language-bash">python3 -m tox
+python3 -m tox -e smoke-pdf,smoke-jpeg</code></pre>
+<p>The default tox environments run the Python version matrix when those interpreters are available, plus linting, type-checking, package build checks, and the standard-library smoke test. The optional PDF and JPEG smoke environments are opt-in because they install optional runtime dependencies.</p>
+<h2 id="naming-standard">Naming Standard</h2>
+<p>CLI modules usually use <code>pyt_domain_verb_object[_batch]</code> names. The installed command is the same name with underscores changed to hyphens. The inventory command <code>pyt_help.py</code> uses the shorter <code>pyt-help</code> name.</p>
+<p>Python modules:</p>
+<pre><code class="language-text">src/pytransformer/cli/pyt_pdf_extract_text.py
+src/pytransformer/cli/pyt_jpeg_strip_metadata.py
+src/pytransformer/core/common.py</code></pre>
+<p>Installed console commands:</p>
+<pre><code class="language-text">pyt-help
+pyt-pdf-extract-text
+pyt-jpeg-strip-metadata
+pyt-mp4-transcribe-batch</code></pre>
+<p>This gives engineers importable Python modules and gives command-line users idiomatic shell command names.</p>
+<h2 id="command-reference">Command Reference</h2>
+<div class="table-wrap"><table><thead><tr><th>Python module</th><th>Console command</th><th>Purpose</th><th>Example</th><th>Writes data?</th><th>Setup</th></tr></thead><tbody><tr><td><code>pyt_help.py</code></td><td><code>pyt-help</code></td><td>List available PyTransformer commands.</td><td><code>pyt-help --verbose</code></td><td>Read-only.</td><td>Standard library only.</td></tr><tr><td><code>pyt_pdf_extract_text.py</code></td><td><code>pyt-pdf-extract-text</code></td><td>Extract PDF text with optional OCR fallback.</td><td><code>pyt-pdf-extract-text --no-ocr &quot;/path/to/file.pdf&quot;</code></td><td>Writes a <code>.txt</code> file and extraction log.</td><td>Requires <code>.[pdf]</code>; OCR also needs <code>.[ocr]</code> and Tesseract.</td></tr><tr><td><code>pyt_pdf_extract_selectable_text.py</code></td><td><code>pyt-pdf-extract-selectable-text</code></td><td>Extract selectable PDF text with a lightweight parser.</td><td><code>pyt-pdf-extract-selectable-text &quot;/path/to/file.pdf&quot;</code></td><td>Writes a <code>.txt</code> file.</td><td>Requires <code>.[pdf]</code>.</td></tr><tr><td><code>pyt_pdf_extract_selectable_text_batch.py</code></td><td><code>pyt-pdf-extract-selectable-text-batch</code></td><td>Batch extract selectable text from PDFs in a folder.</td><td><code>pyt-pdf-extract-selectable-text-batch --output-folder &quot;/path/to/text&quot; &quot;/path/to/pdfs&quot;</code></td><td>Writes one <code>.txt</code> file per PDF.</td><td>Requires <code>.[pdf]</code>.</td></tr><tr><td><code>pyt_pdf_render_jpeg.py</code></td><td><code>pyt-pdf-render-jpeg</code></td><td>Render PDF pages as JPEG images.</td><td><code>pyt-pdf-render-jpeg --dpi 300 --output-folder &quot;/path/to/pages&quot; &quot;/path/to/file.pdf&quot;</code></td><td>Writes JPEG files to an output folder.</td><td>Requires <code>.[pdf]</code>.</td></tr><tr><td><code>pyt_mp4_split_chunks.py</code></td><td><code>pyt-mp4-split-chunks</code></td><td>Split one MP4 into fixed-length chunks.</td><td><code>pyt-mp4-split-chunks --seconds 30 &quot;/path/to/video.mp4&quot;</code></td><td>Writes chunked MP4 files to an output folder.</td><td>Requires <code>.[mp4]</code> and FFmpeg.</td></tr><tr><td><code>pyt_mp4_transcribe.py</code></td><td><code>pyt-mp4-transcribe</code></td><td>Transcribe one MP4 to text.</td><td><code>pyt-mp4-transcribe &quot;/path/to/video.mp4&quot;</code></td><td>Writes a transcript <code>.txt</code> file.</td><td>Requires <code>.[mp4]</code>, FFmpeg, and network access.</td></tr><tr><td><code>pyt_mp4_transcribe_batch.py</code></td><td><code>pyt-mp4-transcribe-batch</code></td><td>Batch transcribe MP4 files in a folder.</td><td><code>pyt-mp4-transcribe-batch --output-folder &quot;/path/to/transcripts&quot; &quot;/path/to/videos&quot;</code></td><td>Writes one transcript per MP4.</td><td>Requires <code>.[mp4]</code>, FFmpeg, and network access.</td></tr><tr><td><code>pyt_jpeg_show_metadata.py</code></td><td><code>pyt-jpeg-show-metadata</code></td><td>Show embedded metadata for one JPEG.</td><td><code>pyt-jpeg-show-metadata --full-values &quot;/path/to/file.jpg&quot;</code></td><td>Read-only.</td><td>Requires <code>.[jpeg]</code>.</td></tr><tr><td><code>pyt_jpeg_strip_metadata.py</code></td><td><code>pyt-jpeg-strip-metadata</code></td><td>Create cleaned JPEG copies without descriptive metadata.</td><td><code>pyt-jpeg-strip-metadata --dry-run &quot;/path/to/images&quot;</code></td><td>Writes cleaned copies to a separate folder by default.</td><td>Requires <code>.[jpeg]</code>.</td></tr><tr><td><code>pyt_jpeg_count_variants.py</code></td><td><code>pyt-jpeg-count-variants</code></td><td>Count preset variants grouped by JPEG base filename.</td><td><code>pyt-jpeg-count-variants --list-presets --include-hidden &quot;/path/to/images&quot;</code></td><td>Read-only.</td><td>Standard library only.</td></tr><tr><td><code>pyt_files_append_folder_name.py</code></td><td><code>pyt-files-append-folder-name</code></td><td>Append the containing folder name to filenames.</td><td><code>pyt-files-append-folder-name --dry-run &quot;/path/to/Tokyo&quot;</code></td><td>Renames files; requires confirmation unless <code>--yes</code> is passed.</td><td>Standard library only.</td></tr><tr><td><code>pyt_text_concatenate.py</code></td><td><code>pyt-text-concatenate</code></td><td>Concatenate text files in a folder.</td><td><code>pyt-text-concatenate --output &quot;/path/to/combined.txt&quot; &quot;/path/to/text-files&quot;</code></td><td>Writes one combined text file.</td><td>Standard library only.</td></tr></tbody></table></div>
+<p>Detailed command notes are available in <code>docs/commands.md</code>.</p>
+<h2 id="documentation">Documentation</h2>
+<ul><li><code>docs/commands.md</code>: command-by-command behavior and dependency notes.</li><li><code>docs/privacy.md</code>: privacy risks for metadata, transcripts, logs, and generated files.</li><li><code>docs/architecture.md</code>: package layout, command structure, and safety model.</li></ul>
+<p>Static HTML documentation is generated from the markdown sources into <code>docs/html/</code>:</p>
+<pre><code class="language-bash">make docs
+make docs-watch</code></pre>
+<p><code>make docs</code> rebuilds the HTML once. <code>make docs-watch</code> keeps rebuilding when <code>README.md</code> or <code>docs/*.md</code> changes. Each command section from <code>docs/commands.md</code> also gets its own generated page under <code>docs/html/commands/</code>.</p>
+<h2 id="safety-defaults">Safety Defaults</h2>
+<ul><li>Commands validate input paths before doing work.</li><li>Batch commands do not recurse unless explicitly documented.</li><li>Symlinks are skipped by batch file operations.</li><li>Output files are not overwritten unless <code>--overwrite</code> is passed.</li><li>Destructive renaming requires an interactive confirmation or <code>--yes</code>.</li><li>Dry-run modes are available where a command performs bulk changes.</li></ul>
+<h2 id="privacy-notes">Privacy Notes</h2>
+<ul><li>MP4 transcription commands use Google Web Speech API through <code>SpeechRecognition</code>; do not use them on sensitive audio unless that service is acceptable for your use case.</li><li>JPEG metadata can include GPS coordinates, camera identifiers, timestamps, comments, and editing metadata. Use <code>pyt-jpeg-show-metadata</code> before publishing, and use <code>pyt-jpeg-strip-metadata</code> to create cleaned copies.</li><li>PDF and media outputs may contain extracted text, rendered pages, or audio-derived transcripts. Treat generated artifacts with the same care as the source files.</li></ul>
+<p>See <code>docs/privacy.md</code> for more detail.</p>
+<h2 id="contributing">Contributing</h2>
+<p>See <code>CONTRIBUTING.md</code> for project standards, validation expectations, and guidance for adding new commands.</p>
+<p>The project uses <code>CODE_OF_CONDUCT.md</code> for collaboration expectations and <code>SUPPORT.md</code> for issue-reporting guidance.</p>
+<h2 id="security">Security</h2>
+<p>Please report security concerns privately. See <code>SECURITY.md</code>.</p>
+<h2 id="changelog">Changelog</h2>
+<p>Release notes are tracked in <code>CHANGELOG.md</code>.</p>
+<h2 id="license">License</h2>
+<p>Distributed under the MIT License. See <code>LICENSE</code> for more information.</p>
+<h2 id="contact">Contact</h2>
+<p>Paul Tocatlian - &lt;https://www.tocatlian.com&gt;</p>
+<p>Project Link: &lt;https://github.com/tocatlian/PyTransformer&gt;</p>
+</article>
+</main>
+</div>
+</body>
+</html>

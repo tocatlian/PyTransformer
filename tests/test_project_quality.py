@@ -46,8 +46,14 @@ PUBLIC_REPOSITORY_FILES = [
     "SUPPORT.md",
     "docs/architecture.md",
     "docs/commands.md",
+    "docs/html/architecture.html",
+    "docs/html/commands.html",
+    "docs/html/index.html",
+    "docs/html/privacy.html",
+    "docs/html/styles.css",
     "docs/privacy.md",
     "pyproject.toml",
+    "scripts/build_docs.py",
     "tox.ini",
 ]
 
@@ -200,7 +206,7 @@ class ProjectQualityTests(unittest.TestCase):
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
 
         self.assertIn("## Quick Start", readme)
-        self.assertIn("pyt-help --with-modules", readme)
+        self.assertIn("pyt-help --verbose", readme)
         self.assertIn("pyt-text-concatenate", readme)
 
     def test_command_docs_mention_every_console_command(self) -> None:
@@ -208,6 +214,15 @@ class ProjectQualityTests(unittest.TestCase):
         for console_command in CONSOLE_COMMANDS:
             with self.subTest(command=console_command):
                 self.assertIn(console_command, command_docs)
+
+    def test_html_docs_include_every_console_command_page(self) -> None:
+        html_docs = ROOT / "docs" / "html"
+        self.assertTrue((html_docs / "commands.html").is_file())
+        for console_command in CONSOLE_COMMANDS:
+            with self.subTest(command=console_command):
+                page_path = html_docs / "commands" / f"{console_command}.html"
+                self.assertTrue(page_path.is_file())
+                self.assertIn(console_command, page_path.read_text(encoding="utf-8"))
 
     def test_pyproject_exposes_every_command_module_as_console_script(self) -> None:
         pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
@@ -252,6 +267,9 @@ class ProjectQualityTests(unittest.TestCase):
             "hook-config-check",
             "hooks",
             "entrypoint-check",
+            "docs",
+            "docs-check",
+            "docs-watch",
             "build-check",
             "tox",
             "smoke-optional",
@@ -392,10 +410,21 @@ class StandardLibraryScriptTests(unittest.TestCase):
         self.assertIn("pyt-pdf-extract-text", command_names)
         self.assertEqual(command_names, sorted(command_names))
 
+        help_text = script.build_parser().format_help()
+        self.assertIn("--terse", help_text)
+        self.assertIn("--verbose", help_text)
+        self.assertIn("--names-only", help_text)
+        self.assertIn("--with-modules", help_text)
+
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
-            script.print_commands(commands, names_only=True, with_modules=False)
+            script.print_commands(commands, terse=True, verbose=False)
         self.assertIn("pyt-help\n", output.getvalue())
+
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            script.print_commands(commands, terse=False, verbose=True)
+        self.assertIn("pyt_help.py", output.getvalue())
 
     def test_text_concat_skips_output_file_and_uses_deterministic_order(self) -> None:
         script = load_cli_module("pyt_text_concatenate")
