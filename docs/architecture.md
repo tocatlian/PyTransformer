@@ -54,9 +54,11 @@ Optional imports should be lazy or guarded so:
 
 ## Documentation Build
 
-Markdown files remain the documentation source of truth. `scripts/build_docs.py` converts `README.md` and `docs/*.md` into static HTML under `docs/html/`, and it splits the command sections in `docs/commands.md` into one generated page per console command.
+Markdown files remain the documentation source of truth. `scripts/build_docs.py` converts `README.md` and project documentation into static HTML under `docs/html/`, and it splits the command sections in `docs/commands.md` into one generated page per console command.
 
 Use `make docs` for a one-time rebuild, `make docs-check` to verify generated HTML is current, and `make docs-watch` while editing markdown.
+
+Keep the docs workflow single-source. If the generator changes, update the Makefile, CI, GitHub Pages workflow, project instructions, README guidance, and generated HTML together so future contributors are not left choosing between competing builders.
 
 ## Safety Model
 

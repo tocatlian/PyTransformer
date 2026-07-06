@@ -15,6 +15,7 @@
 <li><a href="index.html">Home</a></li>
 <li><a href="commands.html">Commands</a></li>
 <li><a href="architecture.html" aria-current="page">Architecture</a></li>
+<li><a href="lessons-learned.html">Lessons</a></li>
 <li><a href="privacy.html">Privacy</a></li>
 </ul>
 <p class="nav-section-title">Command Pages</p>
@@ -63,8 +64,9 @@
 <p>Optional imports should be lazy or guarded so:</p>
 <ul><li>Standard-library commands work after a base install.</li><li>Every command can display <code>--help</code>.</li><li>Missing optional packages produce direct installation guidance.</li><li><code>make type-check</code> can validate the package without installing every optional runtime dependency.</li></ul>
 <h2 id="documentation-build">Documentation Build</h2>
-<p>Markdown files remain the documentation source of truth. <code>scripts/build_docs.py</code> converts <code>README.md</code> and <code>docs/*.md</code> into static HTML under <code>docs/html/</code>, and it splits the command sections in <code>docs/commands.md</code> into one generated page per console command.</p>
+<p>Markdown files remain the documentation source of truth. <code>scripts/build_docs.py</code> converts <code>README.md</code> and project documentation into static HTML under <code>docs/html/</code>, and it splits the command sections in <code>docs/commands.md</code> into one generated page per console command.</p>
 <p>Use <code>make docs</code> for a one-time rebuild, <code>make docs-check</code> to verify generated HTML is current, and <code>make docs-watch</code> while editing markdown.</p>
+<p>Keep the docs workflow single-source. If the generator changes, update the Makefile, CI, GitHub Pages workflow, project instructions, README guidance, and generated HTML together so future contributors are not left choosing between competing builders.</p>
 <h2 id="safety-model">Safety Model</h2>
 <p>Commands should default to conservative file behavior:</p>
 <ul><li>Validate input paths before processing.</li><li>Skip symlinks in batch operations.</li><li>Avoid recursion unless documented.</li><li>Avoid overwriting outputs unless <code>--overwrite</code> is passed.</li><li>Require confirmation or <code>--dry-run</code> for bulk renaming.</li><li>Keep generated artifacts separate from source files when practical.</li></ul>

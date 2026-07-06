@@ -147,6 +147,7 @@ Detailed command notes are available in `docs/commands.md`.
 - `docs/commands.md`: command-by-command behavior and dependency notes.
 - `docs/privacy.md`: privacy risks for metadata, transcripts, logs, and generated files.
 - `docs/architecture.md`: package layout, command structure, and safety model.
+- `docs/lessons-learned.md`: reusable project practices, implementation recipes, testing considerations, and things to avoid repeating.
 
 Static HTML documentation is generated from the markdown sources into `docs/html/`:
 

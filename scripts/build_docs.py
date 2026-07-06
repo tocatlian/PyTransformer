@@ -47,6 +47,7 @@ MARKDOWN_PAGES = [
     MarkdownPage(ROOT / "README.md", "index.html", "PyTransformer", "Home"),
     MarkdownPage(COMMANDS_SOURCE, "commands.html", "Command Guide", "Commands"),
     MarkdownPage(DOCS_DIR / "architecture.md", "architecture.html", "Architecture", "Architecture"),
+    MarkdownPage(DOCS_DIR / "lessons-learned.md", "lessons-learned.html", "Lessons Learned", "Lessons"),
     MarkdownPage(DOCS_DIR / "privacy.md", "privacy.html", "Privacy", "Privacy"),
 ]
 
