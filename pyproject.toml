@@ -90,6 +90,7 @@ pyt-help = "pytransformer.cli.pyt_help:main"
 pyt-jpeg-show-metadata = "pytransformer.cli.pyt_jpeg_show_metadata:main"
 pyt-jpeg-strip-metadata = "pytransformer.cli.pyt_jpeg_strip_metadata:main"
 pyt-jpeg-count-variants = "pytransformer.cli.pyt_jpeg_count_variants:main"
+pyt-jpeg-sliced-collage = "pytransformer.cli.pyt_jpeg_sliced_collage:main"
 pyt-mp4-split-chunks = "pytransformer.cli.pyt_mp4_split_chunks:main"
 pyt-mp4-transcribe-batch = "pytransformer.cli.pyt_mp4_transcribe_batch:main"
 pyt-mp4-transcribe = "pytransformer.cli.pyt_mp4_transcribe:main"
@@ -170,6 +171,7 @@ command_modules = [
     "pyt_jpeg_show_metadata",
     "pyt_jpeg_strip_metadata",
     "pyt_jpeg_count_variants",
+    "pyt_jpeg_sliced_collage",
     "pyt_mp4_split_chunks",
     "pyt_mp4_transcribe_batch",
     "pyt_mp4_transcribe",

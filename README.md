@@ -137,6 +137,7 @@ This gives engineers importable Python modules and gives command-line users idio
 | `pyt_jpeg_show_metadata.py` | `pyt-jpeg-show-metadata` | Show embedded metadata for one JPEG. | `pyt-jpeg-show-metadata --full-values "/path/to/file.jpg"` | Read-only. | Requires `.[jpeg]`. |
 | `pyt_jpeg_strip_metadata.py` | `pyt-jpeg-strip-metadata` | Create cleaned JPEG copies without descriptive metadata. | `pyt-jpeg-strip-metadata --dry-run "/path/to/images"` | Writes cleaned copies to a separate folder by default. | Requires `.[jpeg]`. |
 | `pyt_jpeg_count_variants.py` | `pyt-jpeg-count-variants` | Count preset variants grouped by JPEG base filename. | `pyt-jpeg-count-variants --list-presets --include-hidden "/path/to/images"` | Read-only. | Standard library only. |
+| `pyt_jpeg_sliced_collage.py` | `pyt-jpeg-sliced-collage` | Create a sliced collage from two JPEG images. | `pyt-jpeg-sliced-collage --horizontal 10 image-a.jpg image-b.jpg` | Writes one JPEG collage in the current working directory. | Requires `.[jpeg]`. |
 | `pyt_files_append_folder_name.py` | `pyt-files-append-folder-name` | Append the containing folder name to filenames. | `pyt-files-append-folder-name --dry-run "/path/to/Tokyo"` | Renames files; requires confirmation unless `--yes` is passed. | Standard library only. |
 | `pyt_text_concatenate.py` | `pyt-text-concatenate` | Concatenate text files in a folder. | `pyt-text-concatenate --output "/path/to/combined.txt" "/path/to/text-files"` | Writes one combined text file. | Standard library only. |
 

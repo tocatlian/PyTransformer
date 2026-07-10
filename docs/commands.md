@@ -191,6 +191,23 @@ Dependencies:
 
 - Python standard library only.
 
+### `pyt-jpeg-sliced-collage`
+
+Creates a high-resolution JPEG collage from two JPEG images by alternating strips from each image.
+
+Use when:
+
+- Two same-aspect-ratio JPEG images should be interleaved into a sliced collage.
+- You want vertical strips by default, or horizontal strips with `--horizontal`.
+
+Writes:
+
+- One JPEG collage in the current working directory, named from the two input stems and strip size.
+
+Dependencies:
+
+- `.[jpeg]`
+
 ## File And Text Commands
 
 Folder commands that skip hidden dotfiles by default expose `--include-hidden`.
