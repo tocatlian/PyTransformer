@@ -31,6 +31,7 @@ from pytransformer.core.common import (
     is_hidden_path,
     require_existing_folder,
     sorted_directory_items,
+    temporary_output_path,
 )
 
 TXT_EXTENSIONS = {".txt"}
@@ -86,20 +87,21 @@ def concatenate_text_files(text_files: list[Path], output_path: Path, *, separat
     if not text_files:
         raise ScriptError("No .txt files found to concatenate.")
 
-    with output_path.open("w", encoding="utf-8", newline="\n") as output_file:
-        for index, text_path in enumerate(text_files):
-            if index:
-                output_file.write(separator)
-                if separator and not separator.endswith("\n"):
-                    output_file.write("\n")
+    with temporary_output_path(output_path) as temporary_path:
+        with temporary_path.open("w", encoding="utf-8", newline="\n") as output_file:
+            for index, text_path in enumerate(text_files):
+                if index:
+                    output_file.write(separator)
+                    if separator and not separator.endswith("\n"):
+                        output_file.write("\n")
 
-            try:
-                content = text_path.read_text(encoding="utf-8")
-            except UnicodeDecodeError as exc:
-                raise ScriptError(f"Could not read '{text_path.name}' as UTF-8 text: {exc}") from exc
-            output_file.write(content)
-            if content and not content.endswith("\n"):
-                output_file.write("\n")
+                try:
+                    content = text_path.read_text(encoding="utf-8")
+                except UnicodeDecodeError as exc:
+                    raise ScriptError(f"Could not read '{text_path.name}' as UTF-8 text: {exc}") from exc
+                output_file.write(content)
+                if content and not content.endswith("\n"):
+                    output_file.write("\n")
 
 
 def main() -> int:

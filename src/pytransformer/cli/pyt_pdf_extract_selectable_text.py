@@ -27,10 +27,12 @@ from typing import Any
 from pytransformer.core.common import (
     ScriptError,
     build_command_parser,
+    close_resource,
     configure_logging,
     ensure_output_path,
     fail,
     require_existing_file,
+    temporary_output_path,
 )
 
 PdfReader: Any | None
@@ -134,8 +136,12 @@ def main() -> int:
         require_pdf_dependency()
         pdf_path, output_path = validate_args(args)
         reader = open_pdf_reader(pdf_path, args.password)
-        text, empty_pages = extract_text(reader)
-        output_path.write_text(text, encoding="utf-8")
+        try:
+            text, empty_pages = extract_text(reader)
+        finally:
+            close_resource(reader)
+        with temporary_output_path(output_path) as temporary_path:
+            temporary_path.write_text(text, encoding="utf-8")
     except ScriptError as exc:
         return fail(str(exc), code=2)
     except OSError as exc:

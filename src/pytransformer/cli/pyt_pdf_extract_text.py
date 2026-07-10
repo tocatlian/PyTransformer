@@ -27,7 +27,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from pytransformer.core.common import build_command_parser
+from pytransformer.core.common import ScriptError, build_command_parser, temporary_output_path
 
 fitz: Any | None
 FITZ_IMPORT_ERROR: ImportError | None
@@ -268,47 +268,47 @@ def extract_text_from_pdf(
     logger: logging.Logger,
 ) -> ExtractionSummary:
     summary = ExtractionSummary(total_pages=doc.page_count)
-    mode = "w" if overwrite else "x"
+    if output_path.exists() and not overwrite:
+        raise TextExtractionError(f"Output already exists: {output_path}. Pass --overwrite to replace it.")
 
     try:
-        out_file = output_path.open(mode, encoding="utf-8")
-    except FileExistsError as exc:
-        raise TextExtractionError(f"Output already exists: {output_path}. Pass --overwrite to replace it.") from exc
+        with temporary_output_path(output_path) as temporary_path:
+            with temporary_path.open("w", encoding="utf-8") as out_file:
+                for page_index in range(doc.page_count):
+                    page_number = page_index + 1
+                    logger.info("Processing page %d/%d", page_number, doc.page_count)
+
+                    try:
+                        page = doc.load_page(page_index)
+                        text = page.get_text("text") or ""
+
+                        if not text.strip():
+                            if use_ocr and ocr_available():
+                                logger.info("Page %d has no text layer; running OCR fallback.", page_number)
+                                text = ocr_page(page, ocr_dpi)
+                                summary.ocr_pages += 1
+                            elif use_ocr:
+                                logger.warning(
+                                    "Page %d has no text layer; OCR fallback unavailable: %s.",
+                                    page_number,
+                                    ocr_dependency_message(),
+                                )
+                                summary.empty_pages += 1
+                            else:
+                                logger.info("Page %d has no text layer; OCR fallback disabled.", page_number)
+                                summary.empty_pages += 1
+
+                        out_file.write(text)
+                        if not text.endswith("\n"):
+                            out_file.write("\n")
+                        summary.processed_pages += 1
+                    except Exception as exc:
+                        logger.error("Error on page %d: %s", page_number, exc)
+                        summary.failed_pages += 1
+    except ScriptError as exc:
+        raise TextExtractionError(str(exc)) from exc
     except OSError as exc:
-        raise TextExtractionError(f"Failed opening '{output_path}' for writing: {exc}") from exc
-
-    with out_file:
-        for page_index in range(doc.page_count):
-            page_number = page_index + 1
-            logger.info("Processing page %d/%d", page_number, doc.page_count)
-
-            try:
-                page = doc.load_page(page_index)
-                text = page.get_text("text") or ""
-
-                if not text.strip():
-                    if use_ocr and ocr_available():
-                        logger.info("Page %d has no text layer; running OCR fallback.", page_number)
-                        text = ocr_page(page, ocr_dpi)
-                        summary.ocr_pages += 1
-                    elif use_ocr:
-                        logger.warning(
-                            "Page %d has no text layer; OCR fallback unavailable: %s.",
-                            page_number,
-                            ocr_dependency_message(),
-                        )
-                        summary.empty_pages += 1
-                    else:
-                        logger.info("Page %d has no text layer; OCR fallback disabled.", page_number)
-                        summary.empty_pages += 1
-
-                out_file.write(text)
-                if not text.endswith("\n"):
-                    out_file.write("\n")
-                summary.processed_pages += 1
-            except Exception as exc:
-                logger.error("Error on page %d: %s", page_number, exc)
-                summary.failed_pages += 1
+        raise TextExtractionError(f"Failed writing '{output_path}': {exc}") from exc
 
     return summary
 

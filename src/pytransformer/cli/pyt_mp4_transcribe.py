@@ -30,6 +30,7 @@ from pytransformer.core.common import (
     ensure_output_path,
     fail,
     require_existing_file,
+    temporary_output_path,
 )
 
 MP4_EXTENSIONS = {".mp4"}
@@ -71,7 +72,8 @@ def validate_args(args: argparse.Namespace) -> tuple[Path, Path]:
 def transcribe_mp4(mp4_path: Path, output_path: Path, *, language: str) -> None:
     logging.info("Extracting and transcribing audio: %s", mp4_path)
     transcript = transcribe_mp4_to_text(mp4_path, language=language)
-    output_path.write_text(transcript + "\n", encoding="utf-8")
+    with temporary_output_path(output_path) as temporary_path:
+        temporary_path.write_text(transcript + "\n", encoding="utf-8")
     logging.info("Transcript saved: %s", output_path)
 
 

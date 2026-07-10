@@ -4,15 +4,16 @@
 
 """
 Script: pyt_jpeg_sliced_collage.py
-Purpose: Create a high-resolution JPEG collage by alternating strips from two JPEG images.
-When to use: Use when two same-aspect-ratio JPEG images should be interleaved into vertical or horizontal slices.
-Changes: Writes one JPEG collage to the current working directory.
-Inputs: Strip size in pixels and two JPEG image paths; optional --vertical or --horizontal slicing.
+Purpose: Create a high-resolution sliced collage by cycling strips from two or more JPEG images.
+When to use: Use when same-aspect-ratio JPEG images should be interleaved into vertical or horizontal slices.
+Changes: Writes one JPEG, PNG, or TIFF collage to the current working directory.
+Inputs: Strip size in pixels and two or more JPEG image paths; optional output, format, quality, and slicing flags.
 Environment variables: None.
 Dependencies: pillow.
-Safety notes: Validates both input images, applies EXIF orientation, and resizes the smaller image to match the larger.
-Example: pyt-jpeg-sliced-collage --horizontal 10 image-a.jpg image-b.jpg
-Expected result: A JPEG named image-a+image-b-10px-strips.jpg in the current working directory.
+Safety notes: Validates images, applies EXIF orientation, resizes smaller images, preserves available
+ICC/resolution metadata, and avoids overwrites by default.
+Example: pyt-jpeg-sliced-collage --horizontal --output collage.jpg 10 image-a.jpg image-b.jpg image-c.jpg
+Expected result: An image named image-a+image-b+image-c-10px-strips.jpg in the current working directory.
 Related scripts: pyt_jpeg_show_metadata.py, pyt_jpeg_strip_metadata.py.
 """
 
@@ -21,10 +22,18 @@ from __future__ import annotations
 import argparse
 import math
 import re
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Sequence
 
-from pytransformer.core.common import ScriptError, build_command_parser, fail, require_existing_file
+from pytransformer.core.common import (
+    ScriptError,
+    build_command_parser,
+    ensure_output_path,
+    fail,
+    require_existing_file,
+    require_int_range,
+)
 
 try:
     from PIL import Image, ImageOps, UnidentifiedImageError
@@ -34,8 +43,25 @@ except ImportError:  # pragma: no cover - exercised only when optional dependenc
     UnidentifiedImageError = OSError  # type: ignore[misc,assignment]
 
 ASPECT_RATIO_REL_TOLERANCE = 0.001
-JPEG_QUALITY = 95
+DEFAULT_JPEG_QUALITY = 100
 MAX_OUTPUT_FILENAME_LENGTH = 240
+SUPPORTED_OUTPUT_FORMATS = {"jpeg", "png", "tiff"}
+OUTPUT_FORMAT_EXTENSIONS = {"jpeg": "jpg", "png": "png", "tiff": "tif"}
+OUTPUT_FORMAT_SUFFIXES = {
+    "jpeg": {".jpg", ".jpeg"},
+    "png": {".png"},
+    "tiff": {".tif", ".tiff"},
+}
+
+
+@dataclass(frozen=True)
+class ResolutionMetadata:
+    """Resolution metadata carried by a JPEG input."""
+
+    dpi: tuple[float, float] | None
+    jfif_unit: int | None = None
+    jfif_density: tuple[int, int] | None = None
+
 
 INVALID_FILENAME_CHARS = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
 WINDOWS_RESERVED_NAMES = {
@@ -79,11 +105,14 @@ def parse_positive_integer(value: str) -> int:
 def build_parser() -> argparse.ArgumentParser:
     """Build the command-line parser."""
     parser = build_command_parser(
-        description="Create a high-resolution JPEG collage by alternating strips from two JPEG images.",
+        description="Create a high-resolution JPEG collage by cycling strips from two or more JPEG images.",
         examples=(
             "pyt-jpeg-sliced-collage 10 image-a.jpg image-b.jpg",
             "pyt-jpeg-sliced-collage --vertical 10 image-a.jpg image-b.jpg",
-            "pyt-jpeg-sliced-collage --horizontal 10 image-a.jpg image-b.jpg",
+            "pyt-jpeg-sliced-collage --horizontal 10 image-a.jpg image-b.jpg image-c.jpg",
+            "pyt-jpeg-sliced-collage --output collage.jpg --quality 90 10 image-a.jpg image-b.jpg",
+            "pyt-jpeg-sliced-collage --png --output collage.png 10 image-a.jpg image-b.jpg",
+            "pyt-jpeg-sliced-collage --tiff --output collage.tif 10 image-a.jpg image-b.jpg",
         ),
     )
 
@@ -112,8 +141,40 @@ def build_parser() -> argparse.ArgumentParser:
             "For horizontal slicing, this is strip height."
         ),
     )
-    parser.add_argument("image_1", type=Path, help="Path to the first JPEG image.")
-    parser.add_argument("image_2", type=Path, help="Path to the second JPEG image.")
+    parser.add_argument(
+        "images",
+        type=Path,
+        nargs="+",
+        help="Paths to two or more JPEG images.",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=Path,
+        help="Output image path. Defaults to a generated filename in the current working directory.",
+    )
+    parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="Replace an existing output file.",
+    )
+    parser.add_argument(
+        "--quality",
+        type=int,
+        default=DEFAULT_JPEG_QUALITY,
+        help=f"JPEG output quality from 1 to 100. Ignored for --png. Default: {DEFAULT_JPEG_QUALITY}.",
+    )
+    format_group = parser.add_mutually_exclusive_group()
+    format_group.add_argument(
+        "--png",
+        action="store_true",
+        help="Save a lossless PNG instead of a high-quality JPEG.",
+    )
+    format_group.add_argument(
+        "--tiff",
+        action="store_true",
+        help="Save a lossless TIFF instead of a high-quality JPEG.",
+    )
 
     return parser
 
@@ -149,35 +210,44 @@ def load_jpeg_image(path: Path, *, label: str) -> Any:
         raise ScriptError(f"The {label} could not be read as a valid JPEG: {path}") from exc
 
 
-def validate_same_aspect_ratio(image_1: Any, image_2: Any) -> None:
-    """Require two images to have the same aspect ratio within a small tolerance."""
-    width_1, height_1 = image_1.size
-    width_2, height_2 = image_2.size
-
-    ratio_1 = width_1 / height_1
-    ratio_2 = width_2 / height_2
-
-    if not math.isclose(
-        ratio_1,
-        ratio_2,
-        rel_tol=ASPECT_RATIO_REL_TOLERANCE,
-        abs_tol=ASPECT_RATIO_REL_TOLERANCE,
-    ):
-        raise ScriptError(
-            "The two images do not have the same aspect ratio.\n"
-            f"First image size: {width_1}x{height_1}, ratio: {ratio_1:.6f}\n"
-            f"Second image size: {width_2}x{height_2}, ratio: {ratio_2:.6f}"
-        )
+def require_at_least_two_images(image_paths: Sequence[Path]) -> None:
+    """Require at least two image paths."""
+    if len(image_paths) < 2:
+        raise ScriptError("At least two JPEG image files are required.")
 
 
-def choose_target_size(image_1: Any, image_2: Any) -> tuple[int, int]:
-    """Return the size of the larger image by pixel area."""
-    area_1 = image_1.width * image_1.height
-    area_2 = image_2.width * image_2.height
+def validate_same_aspect_ratio(images: Sequence[Any]) -> None:
+    """Require all images to have the same aspect ratio within a small tolerance."""
+    if not images:
+        raise ScriptError("At least one image is required for aspect-ratio validation.")
 
-    if area_1 >= area_2:
-        return image_1.size
-    return image_2.size
+    base_width, base_height = images[0].size
+    base_ratio = base_width / base_height
+
+    for image_index, image in enumerate(images[1:], start=2):
+        width, height = image.size
+        ratio = width / height
+
+        if not math.isclose(
+            base_ratio,
+            ratio,
+            rel_tol=ASPECT_RATIO_REL_TOLERANCE,
+            abs_tol=ASPECT_RATIO_REL_TOLERANCE,
+        ):
+            raise ScriptError(
+                "The input images do not have the same aspect ratio.\n"
+                f"First image size: {base_width}x{base_height}, ratio: {base_ratio:.6f}\n"
+                f"Image {image_index} size: {width}x{height}, ratio: {ratio:.6f}"
+            )
+
+
+def choose_target_size(images: Sequence[Any]) -> tuple[int, int]:
+    """Return the size of the largest image by pixel area."""
+    if not images:
+        raise ScriptError("At least one image is required to choose a target size.")
+
+    largest_image = max(images, key=lambda image: image.width * image.height)
+    return largest_image.size
 
 
 def get_lanczos_filter() -> Any:
@@ -202,6 +272,88 @@ def resize_to_target(image: Any, target_size: tuple[int, int], *, label: str) ->
         ) from exc
 
 
+def get_first_icc_profile(images: Sequence[Any]) -> bytes | None:
+    """Return the first embedded ICC profile found in the input images."""
+    for image in images:
+        icc_profile = image.info.get("icc_profile")
+        if isinstance(icc_profile, bytes) and icc_profile:
+            return icc_profile
+    return None
+
+
+def _parse_dpi(value: Any) -> tuple[float, float] | None:
+    """Return a finite, positive DPI pair or None for malformed metadata."""
+    if not isinstance(value, (tuple, list)) or len(value) != 2:
+        return None
+
+    x_dpi, y_dpi = value
+    if (
+        isinstance(x_dpi, (int, float))
+        and not isinstance(x_dpi, bool)
+        and isinstance(y_dpi, (int, float))
+        and not isinstance(y_dpi, bool)
+        and math.isfinite(x_dpi)
+        and math.isfinite(y_dpi)
+        and x_dpi > 0
+        and y_dpi > 0
+    ):
+        return float(x_dpi), float(y_dpi)
+
+    return None
+
+
+def _parse_jfif_resolution(info: dict[str, Any]) -> tuple[int | None, tuple[int, int] | None]:
+    """Return valid JFIF units and density values from Pillow image info."""
+    unit = info.get("jfif_unit")
+    density = info.get("jfif_density")
+    if not isinstance(unit, int) or isinstance(unit, bool) or unit not in {0, 1, 2}:
+        return None, None
+    if (
+        not isinstance(density, (tuple, list))
+        or len(density) != 2
+        or any(not isinstance(value, int) or isinstance(value, bool) or not 0 <= value <= 65535 for value in density)
+    ):
+        return unit, None
+
+    return unit, (density[0], density[1])
+
+
+def get_first_resolution_metadata(images: Sequence[Any]) -> ResolutionMetadata | None:
+    """Return the first usable resolution metadata found in the input images."""
+    parsed_resolutions: list[tuple[tuple[float, float] | None, int | None, tuple[int, int] | None]] = []
+    for image in images:
+        info = image.info
+        dpi = _parse_dpi(info.get("dpi"))
+        jfif_unit, jfif_density = _parse_jfif_resolution(info)
+        parsed_resolutions.append((dpi, jfif_unit, jfif_density))
+
+    for dpi, jfif_unit, jfif_density in parsed_resolutions:
+        if dpi is not None:
+            return ResolutionMetadata(dpi, jfif_unit, jfif_density)
+
+    for dpi, jfif_unit, jfif_density in parsed_resolutions:
+        if dpi is not None or jfif_density is None or jfif_unit is None:
+            continue
+
+        if jfif_unit == 0:
+            converted_dpi = None
+        elif jfif_unit == 1:
+            density_x, density_y = jfif_density
+            converted_dpi = (float(density_x), float(density_y))
+        else:
+            density_x, density_y = jfif_density
+            converted_dpi = (density_x * 2.54, density_y * 2.54)
+        return ResolutionMetadata(converted_dpi, jfif_unit, jfif_density)
+
+    return None
+
+
+def get_first_dpi(images: Sequence[Any]) -> tuple[float, float] | None:
+    """Return the first usable DPI metadata found in the input images."""
+    resolution = get_first_resolution_metadata(images)
+    return None if resolution is None else resolution.dpi
+
+
 def sanitize_filename_part(value: str, *, fallback: str) -> str:
     """Make one generated filename segment portable across common filesystems."""
     sanitized = INVALID_FILENAME_CHARS.sub("_", value)
@@ -217,37 +369,107 @@ def sanitize_filename_part(value: str, *, fallback: str) -> str:
     return sanitized
 
 
-def generate_output_path(image_path_1: Path, image_path_2: Path, strip_size: int) -> Path:
-    """Generate the historical output filename in the current working directory."""
-    filename_1 = sanitize_filename_part(image_path_1.stem, fallback="image1")
-    filename_2 = sanitize_filename_part(image_path_2.stem, fallback="image2")
+def build_output_filename_parts(image_paths: Sequence[Path]) -> list[str]:
+    """Return sanitized filename parts derived from input image stems."""
+    return [
+        sanitize_filename_part(image_path.stem, fallback=f"image{index}")
+        for index, image_path in enumerate(image_paths, start=1)
+    ]
 
-    suffix = f"-{strip_size}px-strips.jpg"
+
+def shorten_filename_parts(filename_parts: Sequence[str], suffix: str, separator: str) -> list[str]:
+    """Shorten filename parts enough to fit the configured output filename limit."""
+    separators_length = len(separator) * (len(filename_parts) - 1)
+    available_name_length = MAX_OUTPUT_FILENAME_LENGTH - separators_length - len(suffix)
+
+    if available_name_length < len(filename_parts):
+        raise ScriptError("The generated output filename is too long.")
+
+    base_part_length = max(1, available_name_length // len(filename_parts))
+    remaining_length = max(0, available_name_length - (base_part_length * len(filename_parts)))
+
+    shortened_parts = []
+    for index, filename_part in enumerate(filename_parts, start=1):
+        part_length = base_part_length + (1 if remaining_length > 0 else 0)
+        remaining_length = max(0, remaining_length - 1)
+        shortened_parts.append(filename_part[:part_length].rstrip(" ._") or f"image{index}")
+
+    return shortened_parts
+
+
+def generate_output_path(image_paths: Sequence[Path], strip_size: int, *, output_format: str = "jpeg") -> Path:
+    """Generate a portable output filename in the current working directory."""
+    if output_format not in SUPPORTED_OUTPUT_FORMATS:
+        raise ScriptError(f"Unsupported output format: {output_format}")
+
+    filename_parts = build_output_filename_parts(image_paths)
+    extension = OUTPUT_FORMAT_EXTENSIONS[output_format]
+    suffix = f"-{strip_size}px-strips.{extension}"
     separator = "+"
 
-    output_filename = f"{filename_1}{separator}{filename_2}{suffix}"
+    output_filename = f"{separator.join(filename_parts)}{suffix}"
 
     if len(output_filename) > MAX_OUTPUT_FILENAME_LENGTH:
-        available_length = MAX_OUTPUT_FILENAME_LENGTH - len(separator) - len(suffix)
-
-        if available_length < 2:
-            raise ScriptError("The generated output filename is too long.")
-
-        filename_1_length = max(1, available_length // 2)
-        filename_2_length = max(1, available_length - filename_1_length)
-
-        filename_1 = filename_1[:filename_1_length].rstrip(" ._") or "image1"
-        filename_2 = filename_2[:filename_2_length].rstrip(" ._") or "image2"
-
-        output_filename = f"{filename_1}{separator}{filename_2}{suffix}"
+        filename_parts = shorten_filename_parts(filename_parts, suffix, separator)
+        output_filename = f"{separator.join(filename_parts)}{suffix}"
 
     return Path.cwd() / output_filename
 
 
-def create_vertical_sliced_collage(image_1: Any, image_2: Any, strip_size: int) -> Any:
-    """Create a collage by alternating vertical strips from two same-size images."""
+def resolve_output_path(
+    requested_output_path: Path | None,
+    generated_output_path: Path,
+    image_paths: Sequence[Path],
+    *,
+    overwrite: bool,
+    output_format: str = "jpeg",
+) -> Path:
+    """Resolve and validate the output path."""
+    output_path = generated_output_path if requested_output_path is None else requested_output_path
+    validate_output_extension(output_path, output_format=output_format)
+    if output_path.expanduser().exists() and output_path.expanduser().is_dir():
+        raise ScriptError(f"Output path is a directory, not a file: {output_path.expanduser().resolve()}")
+
+    return ensure_output_path(
+        output_path,
+        overwrite=overwrite,
+        input_paths=image_paths,
+        label="Output file",
+    )
+
+
+def validate_output_extension(output_path: Path, *, output_format: str) -> None:
+    """Reject known image extensions that disagree with the selected output format."""
+    if output_format not in SUPPORTED_OUTPUT_FORMATS:
+        raise ScriptError(f"Unsupported output format: {output_format}")
+
+    suffix = output_path.suffix.lower()
+    if not suffix:
+        return
+
+    for candidate_format, suffixes in OUTPUT_FORMAT_SUFFIXES.items():
+        if suffix in suffixes and candidate_format != output_format:
+            expected = ", ".join(sorted(OUTPUT_FORMAT_SUFFIXES[output_format]))
+            raise ScriptError(
+                f"Output file extension '{suffix}' does not match {output_format} output. Use one of: {expected}."
+            )
+
+
+def validate_same_size(images: Sequence[Any]) -> None:
+    """Require all images to have the same pixel size."""
+    if not images:
+        raise ScriptError("Internal error: at least one image is required before collage generation.")
+
+    expected_size = images[0].size
+    if any(image.size != expected_size for image in images[1:]):
+        raise ScriptError("Internal error: images must be the same size before collage generation.")
+
+
+def create_vertical_sliced_collage(images: Sequence[Any], strip_size: int) -> Any:
+    """Create a collage by cycling vertical strips from same-size images."""
     require_pillow()
-    width, height = image_1.size
+    validate_same_size(images)
+    width, height = images[0].size
 
     if strip_size > width:
         raise ScriptError(
@@ -260,17 +482,18 @@ def create_vertical_sliced_collage(image_1: Any, image_2: Any, strip_size: int) 
     for x in range(0, width, strip_size):
         right = min(x + strip_size, width)
         strip_index = x // strip_size
-        source_image = image_1 if strip_index % 2 == 0 else image_2
+        source_image = images[strip_index % len(images)]
         strip = source_image.crop((x, 0, right, height))
         output.paste(strip, (x, 0))
 
     return output
 
 
-def create_horizontal_sliced_collage(image_1: Any, image_2: Any, strip_size: int) -> Any:
-    """Create a collage by alternating horizontal strips from two same-size images."""
+def create_horizontal_sliced_collage(images: Sequence[Any], strip_size: int) -> Any:
+    """Create a collage by cycling horizontal strips from same-size images."""
     require_pillow()
-    width, height = image_1.size
+    validate_same_size(images)
+    width, height = images[0].size
 
     if strip_size > height:
         raise ScriptError(
@@ -283,40 +506,202 @@ def create_horizontal_sliced_collage(image_1: Any, image_2: Any, strip_size: int
     for y in range(0, height, strip_size):
         bottom = min(y + strip_size, height)
         strip_index = y // strip_size
-        source_image = image_1 if strip_index % 2 == 0 else image_2
+        source_image = images[strip_index % len(images)]
         strip = source_image.crop((0, y, width, bottom))
         output.paste(strip, (0, y))
 
     return output
 
 
-def create_sliced_collage(image_1: Any, image_2: Any, strip_size: int, orientation: str) -> Any:
+def create_sliced_collage(images: Sequence[Any], strip_size: int, orientation: str) -> Any:
     """Create a sliced collage in the requested orientation."""
-    if image_1.size != image_2.size:
-        raise ScriptError("Internal error: images must be the same size before collage generation.")
+    validate_same_size(images)
 
     if orientation == "horizontal":
-        return create_horizontal_sliced_collage(image_1, image_2, strip_size)
+        return create_horizontal_sliced_collage(images, strip_size)
     if orientation == "vertical":
-        return create_vertical_sliced_collage(image_1, image_2, strip_size)
+        return create_vertical_sliced_collage(images, strip_size)
 
     raise ScriptError(f"Unsupported slicing orientation: {orientation}")
 
 
-def save_jpeg(image: Any, output_path: Path) -> None:
+def save_jpeg(
+    image: Any,
+    output_path: Path,
+    *,
+    quality: int = DEFAULT_JPEG_QUALITY,
+    icc_profile: bytes | None = None,
+    dpi: tuple[float, float] | None = None,
+    resolution: ResolutionMetadata | None = None,
+) -> None:
     """Save the output collage as a high-quality progressive JPEG."""
+    require_int_range(quality, label="JPEG quality", minimum=1, maximum=100)
+    if dpi is None and resolution is not None:
+        dpi = resolution.dpi
+
+    save_kwargs: dict[str, Any] = {
+        "format": "JPEG",
+        "quality": quality,
+        "optimize": True,
+        "progressive": True,
+        "subsampling": 0,
+    }
+
+    if icc_profile is not None:
+        save_kwargs["icc_profile"] = icc_profile
+
+    if dpi is not None:
+        save_kwargs["dpi"] = dpi
+
     try:
-        image.save(
-            output_path,
-            format="JPEG",
-            quality=JPEG_QUALITY,
-            optimize=True,
-            progressive=True,
-        )
+        image.save(output_path, **save_kwargs)
+        if resolution is not None and resolution.jfif_unit is not None and resolution.jfif_density is not None:
+            preserve_jfif_resolution(output_path, resolution.jfif_unit, resolution.jfif_density)
     except PermissionError as exc:
         raise ScriptError(f"The output file cannot be written because of a permission error: {output_path}") from exc
-    except OSError as exc:
+    except (OSError, ValueError) as exc:
         raise ScriptError(f"The output file could not be saved: {output_path}") from exc
+
+
+def save_png(
+    image: Any,
+    output_path: Path,
+    *,
+    icc_profile: bytes | None = None,
+    dpi: tuple[float, float] | None = None,
+) -> None:
+    """Save the output collage as a lossless PNG."""
+    save_kwargs: dict[str, Any] = {
+        "format": "PNG",
+        "optimize": True,
+    }
+
+    if icc_profile is not None:
+        save_kwargs["icc_profile"] = icc_profile
+
+    if dpi is not None:
+        save_kwargs["dpi"] = dpi
+
+    try:
+        image.save(output_path, **save_kwargs)
+    except PermissionError as exc:
+        raise ScriptError(f"The output file cannot be written because of a permission error: {output_path}") from exc
+    except (OSError, ValueError) as exc:
+        raise ScriptError(f"The output file could not be saved: {output_path}") from exc
+
+
+def save_tiff(
+    image: Any,
+    output_path: Path,
+    *,
+    icc_profile: bytes | None = None,
+    dpi: tuple[float, float] | None = None,
+) -> None:
+    """Save the output collage as a lossless TIFF."""
+    save_kwargs: dict[str, Any] = {
+        "format": "TIFF",
+        "compression": "tiff_lzw",
+    }
+
+    if icc_profile is not None:
+        save_kwargs["icc_profile"] = icc_profile
+
+    if dpi is not None:
+        save_kwargs["dpi"] = dpi
+
+    try:
+        image.save(output_path, **save_kwargs)
+    except PermissionError as exc:
+        raise ScriptError(f"The output file cannot be written because of a permission error: {output_path}") from exc
+    except (OSError, ValueError) as exc:
+        raise ScriptError(f"The output file could not be saved: {output_path}") from exc
+
+
+def save_output_image(
+    image: Any,
+    output_path: Path,
+    *,
+    output_format: str,
+    quality: int,
+    icc_profile: bytes | None,
+    dpi: tuple[float, float] | None,
+    resolution: ResolutionMetadata | None = None,
+) -> None:
+    """Save the output collage in the requested format."""
+    if output_format == "png":
+        save_png(image, output_path, icc_profile=icc_profile, dpi=dpi)
+        return
+    if output_format == "tiff":
+        save_tiff(image, output_path, icc_profile=icc_profile, dpi=dpi)
+        return
+
+    if output_format != "jpeg":
+        raise ScriptError(f"Unsupported output format: {output_format}")
+
+    save_jpeg(image, output_path, quality=quality, icc_profile=icc_profile, dpi=dpi, resolution=resolution)
+
+
+def preserve_jfif_resolution(output_path: Path, unit: int, density: tuple[int, int]) -> None:
+    """Restore a source JPEG's JFIF resolution unit and exact density after Pillow saves it."""
+    if unit not in {0, 1, 2}:
+        raise ScriptError(f"Unsupported JPEG resolution unit: {unit}")
+    if any(not isinstance(value, int) or not 0 <= value <= 65535 for value in density):
+        raise ScriptError("JPEG resolution density values must be integers from 0 to 65535.")
+
+    raw = bytearray(output_path.read_bytes())
+    if raw[:2] != b"\xff\xd8":
+        raise ScriptError(f"The saved JPEG has an invalid file header: {output_path}")
+
+    offset = 2
+    while offset + 4 <= len(raw):
+        if raw[offset] != 0xFF:
+            offset += 1
+            continue
+
+        marker = raw[offset + 1]
+        if marker == 0xDA or marker == 0xD9:
+            break
+        if marker == 0xFF:
+            offset += 1
+            continue
+
+        segment_length = int.from_bytes(raw[offset + 2 : offset + 4], "big")
+        segment_end = offset + 2 + segment_length
+        if segment_length < 2 or segment_end > len(raw):
+            break
+
+        payload_start = offset + 4
+        if marker == 0xE0 and raw[payload_start : payload_start + 5] == b"JFIF\x00" and segment_length >= 16:
+            unit_offset = payload_start + 7
+            raw[unit_offset] = unit
+            raw[unit_offset + 1 : unit_offset + 3] = density[0].to_bytes(2, "big")
+            raw[unit_offset + 3 : unit_offset + 5] = density[1].to_bytes(2, "big")
+            try:
+                output_path.write_bytes(raw)
+            except OSError as exc:
+                raise ScriptError(f"The JPEG resolution metadata could not be preserved: {output_path}") from exc
+            return
+
+        offset = segment_end
+
+    raise ScriptError(f"The saved JPEG does not contain a JFIF resolution segment: {output_path}")
+
+
+def close_images(images: Sequence[Any]) -> None:
+    """Close Pillow images while tolerating already-closed or test-double objects."""
+    for image in images:
+        close = getattr(image, "close", None)
+        if close is not None:
+            close()
+
+
+def resolve_requested_output_format(*, png: bool, tiff: bool) -> str:
+    """Return the selected output format from the mutually exclusive CLI flags."""
+    if png:
+        return "png"
+    if tiff:
+        return "tiff"
+    return "jpeg"
 
 
 def main() -> int:
@@ -325,27 +710,58 @@ def main() -> int:
     args = parser.parse_args()
 
     try:
-        image_path_1 = require_existing_file(args.image_1, label="First image")
-        image_path_2 = require_existing_file(args.image_2, label="Second image")
+        output_format = resolve_requested_output_format(png=args.png, tiff=args.tiff)
+        if output_format == "jpeg":
+            require_int_range(args.quality, label="JPEG quality", minimum=1, maximum=100)
+        require_at_least_two_images(args.images)
+        image_paths = [
+            require_existing_file(image_path, label=f"Image {index}")
+            for index, image_path in enumerate(args.images, start=1)
+        ]
 
-        image_1 = load_jpeg_image(image_path_1, label="first image")
-        image_2 = load_jpeg_image(image_path_2, label="second image")
+        images: list[Any] = []
+        output_image: Any | None = None
+        try:
+            for index, image_path in enumerate(image_paths, start=1):
+                images.append(load_jpeg_image(image_path, label=f"image {index}"))
 
-        validate_same_aspect_ratio(image_1, image_2)
-        target_size = choose_target_size(image_1, image_2)
+            validate_same_aspect_ratio(images)
+            target_size = choose_target_size(images)
+            icc_profile = get_first_icc_profile(images)
+            resolution = get_first_resolution_metadata(images)
+            dpi = None if resolution is None else resolution.dpi
 
-        image_1 = resize_to_target(image_1, target_size, label="first image")
-        image_2 = resize_to_target(image_2, target_size, label="second image")
+            resized_images = [
+                resize_to_target(image, target_size, label=f"image {index}")
+                for index, image in enumerate(images, start=1)
+            ]
+            for original, resized in zip(images, resized_images, strict=True):
+                if resized is not original:
+                    original.close()
+            images = resized_images
 
-        output_image = create_sliced_collage(
-            image_1,
-            image_2,
-            args.strip_size,
-            args.orientation,
-        )
-        output_path = generate_output_path(image_path_1, image_path_2, args.strip_size)
+            output_image = create_sliced_collage(images, args.strip_size, args.orientation)
+            output_path = resolve_output_path(
+                args.output,
+                generate_output_path(image_paths, args.strip_size, output_format=output_format),
+                image_paths,
+                overwrite=args.overwrite,
+                output_format=output_format,
+            )
 
-        save_jpeg(output_image, output_path)
+            save_output_image(
+                output_image,
+                output_path,
+                output_format=output_format,
+                quality=args.quality,
+                icc_profile=icc_profile,
+                dpi=dpi,
+                resolution=resolution,
+            )
+        finally:
+            if output_image is not None:
+                output_image.close()
+            close_images(images)
     except ScriptError as error:
         return fail(str(error), code=1)
     except KeyboardInterrupt:

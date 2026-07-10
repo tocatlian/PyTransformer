@@ -25,7 +25,7 @@ from pathlib import Path
 from typing import Any
 
 from pytransformer.core import jpeg_metadata
-from pytransformer.core.common import build_command_parser
+from pytransformer.core.common import build_command_parser, temporary_output_path
 from pytransformer.core.jpeg_metadata import JPEG_EXTENSIONS, format_display_value, inspect_embedded_metadata
 
 
@@ -128,7 +128,8 @@ def save_with_color_and_quality_preserved(
             if "qtables" not in save_kwargs:
                 save_kwargs["quality"] = 95
 
-            clean.save(dst, **save_kwargs)
+            with temporary_output_path(dst) as temporary_path:
+                clean.save(temporary_path, **save_kwargs)
         finally:
             clean.close()
             if working_image is not image:

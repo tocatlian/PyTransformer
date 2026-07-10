@@ -110,6 +110,10 @@ def apply_rename_plan(plans: list[RenamePlan], *, dry_run: bool) -> RenameSummar
             continue
 
         try:
+            if plan.target.exists():
+                summary.skipped += 1
+                logging.warning("Skipping %s because target now exists: %s", plan.source.name, plan.target.name)
+                continue
             plan.source.rename(plan.target)
             summary.renamed += 1
             logging.info("Renamed: %s -> %s", plan.source.name, plan.target.name)

@@ -187,9 +187,9 @@ def get_info_map(image: Any) -> dict[str, str]:
     info = dict(image.info or {})
 
     for key, value in info.items():
-        if key == "exif":
+        if key == "exif" and isinstance(value, bytes):
             result["INFO.exif_raw"] = f"<bytes length={len(value)}>"
-        elif key == "icc_profile":
+        elif key == "icc_profile" and isinstance(value, bytes):
             result["INFO.icc_profile"] = f"<bytes length={len(value)}>"
         elif key == "comment":
             result["INFO.comment"] = repr(value)

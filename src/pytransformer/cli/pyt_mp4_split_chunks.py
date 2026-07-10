@@ -21,6 +21,7 @@ from __future__ import annotations
 import argparse
 import importlib
 import logging
+import math
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -33,6 +34,7 @@ from pytransformer.core.common import (
     require_existing_file,
     require_positive_int,
     resolve_user_path,
+    temporary_output_path,
 )
 
 VideoFileClip: Any | None
@@ -128,7 +130,7 @@ def split_video(video_path: Path, output_folder: Path, *, chunk_seconds: int, ov
     try:
         clip = video_clip_cls(str(video_path))
         duration = float(clip.duration or 0)
-        if duration <= 0:
+        if not math.isfinite(duration) or duration <= 0:
             raise ScriptError(f"Could not determine a positive duration for: {video_path}")
 
         total_chunks = int(duration // chunk_seconds) + int(duration % chunk_seconds > 0)
@@ -159,12 +161,13 @@ def split_video(video_path: Path, output_folder: Path, *, chunk_seconds: int, ov
                     subclip = clip.subclip(start_time, end_time)
                 else:
                     subclip = clip.subclipped(start_time, end_time)
-                subclip.write_videofile(
-                    str(chunk_path),
-                    codec="libx264",
-                    audio_codec="aac",
-                    logger=None,
-                )
+                with temporary_output_path(chunk_path) as temporary_path:
+                    subclip.write_videofile(
+                        str(temporary_path),
+                        codec="libx264",
+                        audio_codec="aac",
+                        logger=None,
+                    )
                 summary.saved += 1
                 logging.info("Saved chunk %d/%d: %s", chunk_number, total_chunks, chunk_path.name)
             except Exception as exc:

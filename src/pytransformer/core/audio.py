@@ -57,8 +57,11 @@ def extract_wav(mp4_path: Path, wav_path: Path) -> None:
 
     clip: Any | None = None
     try:
-        clip = audio_clip_cls(str(mp4_path))
-        clip.write_audiofile(str(wav_path), codec="pcm_s16le", logger=None)
+        try:
+            clip = audio_clip_cls(str(mp4_path))
+            clip.write_audiofile(str(wav_path), codec="pcm_s16le", logger=None)
+        except Exception as exc:
+            raise ScriptError(f"Could not extract audio from '{mp4_path}': {exc}") from exc
     finally:
         if clip is not None:
             clip.close()
@@ -71,8 +74,11 @@ def transcribe_wav(wav_path: Path, *, language: str) -> str:
         raise ScriptError("SpeechRecognition is required. Install it with: pip install SpeechRecognition")
 
     recognizer = recognition_module.Recognizer()
-    with recognition_module.AudioFile(str(wav_path)) as source:
-        audio_data = recognizer.record(source)
+    try:
+        with recognition_module.AudioFile(str(wav_path)) as source:
+            audio_data = recognizer.record(source)
+    except Exception as exc:
+        raise ScriptError(f"Could not read extracted audio '{wav_path}': {exc}") from exc
 
     try:
         return recognizer.recognize_google(audio_data, language=language)
@@ -80,6 +86,8 @@ def transcribe_wav(wav_path: Path, *, language: str) -> str:
         return "Google Speech Recognition could not understand the audio."
     except recognition_module.RequestError as exc:
         raise ScriptError(f"Google Speech Recognition request failed: {exc}") from exc
+    except Exception as exc:
+        raise ScriptError(f"Google Speech Recognition failed: {exc}") from exc
 
 
 def transcribe_mp4_to_text(mp4_path: Path, *, language: str) -> str:

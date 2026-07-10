@@ -15,6 +15,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from typing import Any, NoReturn
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
@@ -355,6 +356,35 @@ class CommonHelperTests(unittest.TestCase):
             with self.assertRaises(common.ScriptError):
                 common.ensure_output_path(input_path, overwrite=True, input_paths=[input_path])
 
+    def test_ensure_output_path_rejects_directory_even_with_overwrite(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            output_folder = Path(tmp) / "output"
+            output_folder.mkdir()
+
+            with self.assertRaises(common.ScriptError):
+                common.ensure_output_path(output_folder, overwrite=True)
+
+    def test_temporary_output_path_commits_and_cleans_up(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            output_path = Path(tmp) / "output.txt"
+            with common.temporary_output_path(output_path) as temporary_path:
+                temporary_path.write_text("complete", encoding="utf-8")
+
+            self.assertEqual(output_path.read_text(encoding="utf-8"), "complete")
+            self.assertEqual(list(output_path.parent.glob(".output-*.txt")), [])
+
+    def test_temporary_output_path_preserves_existing_output_on_failure(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            output_path = Path(tmp) / "output.txt"
+            output_path.write_text("original", encoding="utf-8")
+
+            with self.assertRaises(RuntimeError):
+                with common.temporary_output_path(output_path) as temporary_path:
+                    temporary_path.write_text("partial", encoding="utf-8")
+                    raise RuntimeError("write failed")
+
+            self.assertEqual(output_path.read_text(encoding="utf-8"), "original")
+
     def test_path_and_value_validation_failures_are_user_facing(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             folder = Path(tmp)
@@ -454,8 +484,10 @@ class StandardLibraryScriptTests(unittest.TestCase):
 
             invalid_path = folder / "invalid.txt"
             invalid_path.write_bytes(b"\xff")
+            output_path.write_text("original", encoding="utf-8")
             with self.assertRaises(common.ScriptError):
                 script.concatenate_text_files([invalid_path], output_path, separator="\n")
+            self.assertEqual(output_path.read_text(encoding="utf-8"), "original")
 
     def test_rename_plan_skips_hidden_files_and_existing_targets(self) -> None:
         script = load_cli_module("pyt_files_append_folder_name")
@@ -474,6 +506,24 @@ class StandardLibraryScriptTests(unittest.TestCase):
             summary = script.apply_rename_plan(plans, dry_run=False)
             self.assertEqual(summary.renamed, 1)
             self.assertTrue((folder / "one-Tokyo.jpg").exists())
+
+    def test_rename_plan_does_not_replace_target_created_after_planning(self) -> None:
+        script = load_cli_module("pyt_files_append_folder_name")
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp) / "Tokyo"
+            folder.mkdir()
+            source = folder / "one.jpg"
+            target = folder / "one-Tokyo.jpg"
+            source.write_text("source", encoding="utf-8")
+            plan = script.RenamePlan(source=source, target=target)
+            target.write_text("target", encoding="utf-8")
+
+            summary = script.apply_rename_plan([plan], dry_run=False)
+
+            self.assertEqual(summary.renamed, 0)
+            self.assertEqual(summary.skipped, 1)
+            self.assertEqual(source.read_text(encoding="utf-8"), "source")
+            self.assertEqual(target.read_text(encoding="utf-8"), "target")
 
     def test_rename_plan_dry_run_leaves_files_unchanged(self) -> None:
         script = load_cli_module("pyt_files_append_folder_name")
@@ -566,14 +616,14 @@ class StandardLibraryScriptTests(unittest.TestCase):
             def fail_transcription(_path: Path, *, language: str) -> str:
                 raise common.ScriptError("transcription failed")
 
-            script.transcribe_mp4_to_text = fail_transcription
-            summary = script.process_folder(
-                folder,
-                output_folder=None,
-                overwrite=False,
-                include_hidden=False,
-                language="en-US",
-            )
+            with patch.object(script, "transcribe_mp4_to_text", side_effect=fail_transcription):
+                summary = script.process_folder(
+                    folder,
+                    output_folder=None,
+                    overwrite=False,
+                    include_hidden=False,
+                    language="en-US",
+                )
             self.assertEqual(summary.skipped, 0)
             self.assertEqual(summary.failed, 1)
 
@@ -618,16 +668,63 @@ class StandardLibraryScriptTests(unittest.TestCase):
             def fail_open_pdf(_path: Path, _password: str) -> NoReturn:
                 raise common.ScriptError("pdf failed")
 
-            script.open_pdf_reader = fail_open_pdf
-            summary = script.process_folder(
-                folder,
-                output_folder=None,
-                overwrite=False,
-                include_hidden=False,
-                password="",
-            )
+            with patch.object(script, "open_pdf_reader", side_effect=fail_open_pdf):
+                summary = script.process_folder(
+                    folder,
+                    output_folder=None,
+                    overwrite=False,
+                    include_hidden=False,
+                    password="",
+                )
             self.assertEqual(summary.skipped, 0)
             self.assertEqual(summary.failed, 1)
+
+    def test_batch_pdf_closes_reader_after_processing(self) -> None:
+        script = load_cli_module("pyt_pdf_extract_selectable_text_batch")
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            pdf_path = folder / "doc.pdf"
+            pdf_path.touch()
+            reader = type("Reader", (), {"close": lambda self: setattr(self, "closed", True)})()
+            reader.closed = False
+
+            with (
+                patch.object(script, "open_pdf_reader", return_value=reader),
+                patch.object(script, "extract_text", return_value=("text", 0)),
+            ):
+                summary = script.process_folder(
+                    folder,
+                    output_folder=None,
+                    overwrite=False,
+                    include_hidden=False,
+                    password="",
+                )
+
+            self.assertEqual(summary.written, 1)
+            self.assertTrue(reader.closed)
+
+    def test_mp4_split_rejects_non_finite_duration_and_closes_clip(self) -> None:
+        script = load_cli_module("pyt_mp4_split_chunks")
+
+        class FakeClip:
+            duration = float("nan")
+
+            def __init__(self) -> None:
+                self.closed = False
+
+            def close(self) -> None:
+                self.closed = True
+
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            video_path = folder / "video.mp4"
+            video_path.touch()
+            clip = FakeClip()
+            with patch.object(script, "VideoFileClip", return_value=clip):
+                with self.assertRaises(common.ScriptError):
+                    script.split_video(video_path, folder / "chunks", chunk_seconds=30, overwrite=False)
+
+            self.assertTrue(clip.closed)
 
     def test_pdf_file_validation_guards_existing_outputs(self) -> None:
         script = load_cli_module("pyt_pdf_extract_selectable_text")

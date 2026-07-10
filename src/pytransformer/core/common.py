@@ -6,10 +6,13 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
 import logging
+import os
 import sys
+import tempfile
 from pathlib import Path
-from typing import Collection, Iterable
+from typing import Collection, Iterable, Iterator
 
 
 class ScriptError(RuntimeError):
@@ -97,13 +100,58 @@ def ensure_output_path(
     protected_inputs = {resolve_user_path(input_path) for input_path in input_paths}
     if resolved in protected_inputs:
         raise ScriptError(f"{label} must be different from the input path: {resolved}")
-    if resolved.exists() and not overwrite:
-        raise ScriptError(f"{label} already exists: {resolved}. Pass --overwrite to replace it.")
+    if resolved.exists():
+        if resolved.is_dir():
+            raise ScriptError(f"{label} is a directory, not a file: {resolved}")
+        if not overwrite:
+            raise ScriptError(f"{label} already exists: {resolved}. Pass --overwrite to replace it.")
     try:
         resolved.parent.mkdir(parents=True, exist_ok=True)
     except OSError as exc:
         raise ScriptError(f"Could not create output folder '{resolved.parent}': {exc}") from exc
     return resolved
+
+
+@contextlib.contextmanager
+def temporary_output_path(path: Path) -> Iterator[Path]:
+    """Yield a same-directory temporary path and replace the final path on success."""
+    resolved = resolve_user_path(path)
+    try:
+        file_descriptor, temporary_name = tempfile.mkstemp(
+            dir=resolved.parent,
+            prefix=f".{resolved.stem}-",
+            suffix=resolved.suffix,
+        )
+        os.close(file_descriptor)
+    except OSError as exc:
+        raise ScriptError(f"Could not prepare temporary output for '{resolved}': {exc}") from exc
+
+    temporary_path = Path(temporary_name)
+    try:
+        temporary_path.unlink()
+        yield temporary_path
+        try:
+            temporary_path.replace(resolved)
+        except OSError as exc:
+            raise ScriptError(f"Could not finalize output file '{resolved}': {exc}") from exc
+    finally:
+        with contextlib.suppress(FileNotFoundError):
+            temporary_path.unlink()
+
+
+def close_resource(resource: object) -> None:
+    """Close a resource or its file-like stream without masking the main result."""
+    close = getattr(resource, "close", None)
+    if callable(close):
+        with contextlib.suppress(Exception):
+            close()
+        return
+
+    stream = getattr(resource, "stream", None)
+    stream_close = getattr(stream, "close", None)
+    if callable(stream_close):
+        with contextlib.suppress(Exception):
+            stream_close()
 
 
 def require_positive_int(value: int, *, label: str) -> None:

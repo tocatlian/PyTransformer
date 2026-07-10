@@ -169,16 +169,18 @@ smoke-jpeg:
 	@tmpdir="$$(mktemp -d)"; \
 	trap 'rm -rf "$$tmpdir"' EXIT; \
 	mkdir -p "$$tmpdir/images" "$$tmpdir/clean"; \
-	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -c 'import sys; from pathlib import Path; from PIL import Image; folder = Path(sys.argv[1]); exif = Image.Exif(); exif[0x010F] = "PyTransformer"; exif[0x0131] = "Smoke"; colors = {"photo-warm.jpg": (220, 120, 90), "photo-cool.jpg": (70, 130, 210)}; [Image.new("RGB", (24, 24), color).save(folder / name, "JPEG", exif=exif, comment=b"private smoke comment") for name, color in colors.items()]' "$$tmpdir/images"; \
+	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -c 'import sys; from pathlib import Path; from PIL import Image; folder = Path(sys.argv[1]); exif = Image.Exif(); exif[0x010F] = "PyTransformer"; exif[0x0131] = "Smoke"; colors = {"photo-warm.jpg": (220, 120, 90), "photo-cool.jpg": (70, 130, 210), "photo-neutral.jpg": (140, 140, 140)}; [Image.new("RGB", (24, 24), color).save(folder / name, "JPEG", exif=exif, comment=b"private smoke comment") for name, color in colors.items()]' "$$tmpdir/images"; \
 	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytransformer.cli.pyt_jpeg_show_metadata "$$tmpdir/images/photo-warm.jpg"; \
 	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytransformer.cli.pyt_jpeg_count_variants --list-presets "$$tmpdir/images"; \
-	cd "$$tmpdir" && PYTHONPATH="$(CURDIR)/$(PYTHONPATH)" $(PYTHON) -m pytransformer.cli.pyt_jpeg_sliced_collage 8 "$$tmpdir/images/photo-warm.jpg" "$$tmpdir/images/photo-cool.jpg"; \
+	cd "$$tmpdir" && PYTHONPATH="$(CURDIR)/$(PYTHONPATH)" $(PYTHON) -m pytransformer.cli.pyt_jpeg_sliced_collage 8 "$$tmpdir/images/photo-warm.jpg" "$$tmpdir/images/photo-cool.jpg" "$$tmpdir/images/photo-neutral.jpg"; \
+	cd "$$tmpdir" && PYTHONPATH="$(CURDIR)/$(PYTHONPATH)" $(PYTHON) -m pytransformer.cli.pyt_jpeg_sliced_collage --tiff --output "$$tmpdir/collage.tif" 8 "$$tmpdir/images/photo-warm.jpg" "$$tmpdir/images/photo-cool.jpg" "$$tmpdir/images/photo-neutral.jpg"; \
 	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytransformer.cli.pyt_jpeg_strip_metadata --quiet --output-folder "$$tmpdir/clean" "$$tmpdir/images"; \
 	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytransformer.cli.pyt_jpeg_show_metadata "$$tmpdir/clean/photo-warm.jpg"; \
 	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -c 'import sys; from pathlib import Path; from pytransformer.core.jpeg_metadata import inspect_embedded_metadata; metadata = inspect_embedded_metadata(Path(sys.argv[1])); leftovers = sorted(key for key in metadata if key.startswith("EXIF.") or key == "INFO.comment"); sys.exit(f"metadata was not stripped: {leftovers}") if leftovers else None' "$$tmpdir/clean/photo-warm.jpg"; \
 	test -f "$$tmpdir/clean/photo-warm.jpg"; \
 	test -f "$$tmpdir/clean/photo-cool.jpg"; \
-	test -f "$$tmpdir/photo-warm+photo-cool-8px-strips.jpg"
+	test -f "$$tmpdir/photo-warm+photo-cool+photo-neutral-8px-strips.jpg"; \
+	test -f "$$tmpdir/collage.tif"
 
 clean:
 	rm -rf __pycache__ tests/__pycache__ src/pytransformer/__pycache__ src/pytransformer/cli/__pycache__ src/pytransformer/core/__pycache__

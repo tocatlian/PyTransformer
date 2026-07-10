@@ -28,6 +28,7 @@ from typing import Any
 from pytransformer.core.common import (
     ScriptError,
     build_command_parser,
+    close_resource,
     configure_logging,
     ensure_output_path,
     fail,
@@ -35,6 +36,7 @@ from pytransformer.core.common import (
     require_existing_folder,
     resolve_user_path,
     sorted_directory_items,
+    temporary_output_path,
 )
 
 PdfReader: Any | None
@@ -200,8 +202,12 @@ def process_folder(
                 label="Output file",
             )
             reader = open_pdf_reader(pdf_path, password)
-            text, empty_pages = extract_text(reader)
-            output_path.write_text(text, encoding="utf-8")
+            try:
+                text, empty_pages = extract_text(reader)
+            finally:
+                close_resource(reader)
+            with temporary_output_path(output_path) as temporary_path:
+                temporary_path.write_text(text, encoding="utf-8")
             summary.empty_pages += empty_pages
             summary.written += 1
             logging.info("Saved text: %s", output_path.name)

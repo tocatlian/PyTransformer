@@ -34,6 +34,7 @@ from pytransformer.core.common import (
     require_existing_folder,
     resolve_user_path,
     sorted_directory_items,
+    temporary_output_path,
 )
 
 MP4_EXTENSIONS = {".mp4"}
@@ -140,7 +141,8 @@ def process_folder(
             )
             logging.info("Transcribing: %s", mp4_path.name)
             transcript = transcribe_mp4_to_text(mp4_path, language=language)
-            transcript_path.write_text(transcript + "\n", encoding="utf-8")
+            with temporary_output_path(transcript_path) as temporary_path:
+                temporary_path.write_text(transcript + "\n", encoding="utf-8")
             summary.written += 1
             logging.info("Saved transcript: %s", transcript_path)
         except ScriptError as exc:

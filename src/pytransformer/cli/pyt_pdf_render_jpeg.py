@@ -26,7 +26,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from pytransformer.core.common import build_command_parser
+from pytransformer.core.common import build_command_parser, temporary_output_path
 
 fitz: Any | None
 FITZ_IMPORT_ERROR: ImportError | None
@@ -189,7 +189,8 @@ def convert_pdf_to_images(
         try:
             page = doc.load_page(idx)
             pix = page.get_pixmap(matrix=matrix, alpha=False)
-            save_pixmap_jpeg(pix, out_path, quality)
+            with temporary_output_path(out_path) as temporary_path:
+                save_pixmap_jpeg(pix, temporary_path, quality)
         except Exception as exc:
             logging.error("Failed to convert page %d: %s", page_num, exc)
             summary.failed += 1

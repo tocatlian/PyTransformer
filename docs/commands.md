@@ -193,16 +193,23 @@ Dependencies:
 
 ### `pyt-jpeg-sliced-collage`
 
-Creates a high-resolution JPEG collage from two JPEG images by alternating strips from each image.
+Creates a high-resolution JPEG collage from two or more JPEG images by cycling strips from each image.
 
 Use when:
 
-- Two same-aspect-ratio JPEG images should be interleaved into a sliced collage.
+- Same-aspect-ratio JPEG images should be interleaved into a sliced collage.
 - You want vertical strips by default, or horizontal strips with `--horizontal`.
+- You want to choose the destination with `--output` or JPEG quality with `--quality`.
+- You want a lossless PNG output with `--png`, or a lossless TIFF output with `--tiff`.
 
 Writes:
 
-- One JPEG collage in the current working directory, named from the two input stems and strip size.
+- One JPEG, PNG, or TIFF collage in the current working directory, or at `--output`.
+- Existing output files are refused unless `--overwrite` is passed.
+- JPEG output defaults to quality 100, full chroma detail, and the first available input ICC color profile and resolution metadata.
+- JPEG output preserves the first available input JFIF resolution unit and exact density when present, along with its DPI representation.
+- PNG output is lossless and also preserves the first available input ICC color profile and DPI.
+- TIFF output is lossless LZW-compressed TIFF and also preserves the first available input ICC color profile and DPI.
 
 Dependencies:
 
