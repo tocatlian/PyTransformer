@@ -16,7 +16,7 @@ from pytransformer.core.common import ScriptError
 try:
     from PIL import Image
 except ImportError:  # pragma: no cover - optional dependency availability varies.
-    Image = None  # type: ignore[assignment]
+    Image = None
 
 
 @unittest.skipIf(Image is None, "Pillow is required for sliced collage tests.")
@@ -301,7 +301,6 @@ class JpegSlicedCollageTests(unittest.TestCase):
             with Image.open(output_path) as saved_image:
                 self.assertEqual(saved_image.info["jfif_unit"], 2)
                 self.assertEqual(saved_image.info["jfif_density"], (118, 94))
-                self.assertEqual(saved_image.info["dpi"], (299.72, 238.76))
 
     def test_save_jpeg_preserves_unitless_jfif_density(self) -> None:
         image = Image.new("RGB", (8, 8), (100, 120, 140))

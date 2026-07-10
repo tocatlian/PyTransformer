@@ -38,9 +38,9 @@ from pytransformer.core.common import (
 try:
     from PIL import Image, ImageOps, UnidentifiedImageError
 except ImportError:  # pragma: no cover - exercised only when optional dependency is missing.
-    Image = None  # type: ignore[assignment]
-    ImageOps = None  # type: ignore[assignment]
-    UnidentifiedImageError = OSError  # type: ignore[misc,assignment]
+    Image = None
+    ImageOps = None
+    UnidentifiedImageError = OSError
 
 ASPECT_RATIO_REL_TOLERANCE = 0.001
 DEFAULT_JPEG_QUALITY = 100
@@ -256,7 +256,7 @@ def get_lanczos_filter() -> Any:
     try:
         return Image.Resampling.LANCZOS
     except AttributeError:
-        return Image.LANCZOS  # type: ignore[attr-defined]
+        return Image.LANCZOS
 
 
 def resize_to_target(image: Any, target_size: tuple[int, int], *, label: str) -> Any:
