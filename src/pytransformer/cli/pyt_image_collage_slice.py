@@ -3,18 +3,19 @@
 # Copyright (c) 2023-2026 Paul Tocatlian
 
 """
-Script: pyt_jpeg_sliced_collage.py
-Purpose: Create a high-resolution sliced collage by cycling strips from two or more JPEG images.
-When to use: Use when same-aspect-ratio JPEG images should be interleaved into vertical or horizontal slices.
-Changes: Writes one JPEG, PNG, or TIFF collage to the current working directory.
-Inputs: Strip size in pixels and two or more JPEG image paths; optional output, format, quality, and slicing flags.
+Script: pyt_image_collage_slice.py
+Purpose: Create a high-resolution sliced collage by cycling strips from two or more images.
+When to use: Use when same-aspect-ratio images should be interleaved into vertical or horizontal slices.
+Changes: Writes one JPEG, PNG, TIFF, or WebP collage to the current working directory.
+Inputs: Strip size in pixels and two or more JPEG, PNG, TIFF, or WebP image paths; optional output, format,
+quality, and slicing flags.
 Environment variables: None.
 Dependencies: pillow.
 Safety notes: Validates images, applies EXIF orientation, resizes smaller images, preserves available
 ICC/resolution metadata, and avoids overwrites by default.
-Example: pyt-jpeg-sliced-collage --horizontal --output collage.jpg 10 image-a.jpg image-b.jpg image-c.jpg
+Example: pyt-image-collage-slice --horizontal --webp --output collage.webp 10 image-a.webp image-b.webp image-c.webp
 Expected result: An image named image-a+image-b+image-c-10px-strips.jpg in the current working directory.
-Related scripts: pyt_jpeg_show_metadata.py, pyt_jpeg_strip_metadata.py.
+Related scripts: pyt_image_split.py, pyt_jpeg_show_metadata.py, pyt_jpeg_strip_metadata.py.
 """
 
 from __future__ import annotations
@@ -45,12 +46,15 @@ except ImportError:  # pragma: no cover - exercised only when optional dependenc
 ASPECT_RATIO_REL_TOLERANCE = 0.001
 DEFAULT_JPEG_QUALITY = 100
 MAX_OUTPUT_FILENAME_LENGTH = 240
-SUPPORTED_OUTPUT_FORMATS = {"jpeg", "png", "tiff"}
-OUTPUT_FORMAT_EXTENSIONS = {"jpeg": "jpg", "png": "png", "tiff": "tif"}
+SUPPORTED_INPUT_FORMATS = {"JPEG", "PNG", "TIFF", "WEBP"}
+SUPPORTED_INPUT_SUFFIXES = {".jpg", ".jpeg", ".png", ".tif", ".tiff", ".webp"}
+SUPPORTED_OUTPUT_FORMATS = {"jpeg", "png", "tiff", "webp"}
+OUTPUT_FORMAT_EXTENSIONS = {"jpeg": "jpg", "png": "png", "tiff": "tif", "webp": "webp"}
 OUTPUT_FORMAT_SUFFIXES = {
     "jpeg": {".jpg", ".jpeg"},
     "png": {".png"},
     "tiff": {".tif", ".tiff"},
+    "webp": {".webp"},
 }
 
 
@@ -105,14 +109,15 @@ def parse_positive_integer(value: str) -> int:
 def build_parser() -> argparse.ArgumentParser:
     """Build the command-line parser."""
     parser = build_command_parser(
-        description="Create a high-resolution JPEG collage by cycling strips from two or more JPEG images.",
+        description="Create a high-resolution image collage by cycling strips from two or more images.",
         examples=(
-            "pyt-jpeg-sliced-collage 10 image-a.jpg image-b.jpg",
-            "pyt-jpeg-sliced-collage --vertical 10 image-a.jpg image-b.jpg",
-            "pyt-jpeg-sliced-collage --horizontal 10 image-a.jpg image-b.jpg image-c.jpg",
-            "pyt-jpeg-sliced-collage --output collage.jpg --quality 90 10 image-a.jpg image-b.jpg",
-            "pyt-jpeg-sliced-collage --png --output collage.png 10 image-a.jpg image-b.jpg",
-            "pyt-jpeg-sliced-collage --tiff --output collage.tif 10 image-a.jpg image-b.jpg",
+            "pyt-image-collage-slice 10 image-a.jpg image-b.png",
+            "pyt-image-collage-slice --vertical 10 image-a.jpg image-b.webp",
+            "pyt-image-collage-slice --horizontal 10 image-a.jpg image-b.png image-c.webp",
+            "pyt-image-collage-slice --output collage.jpg --quality 90 10 image-a.jpg image-b.png",
+            "pyt-image-collage-slice --png --output collage.png 10 image-a.jpg image-b.webp",
+            "pyt-image-collage-slice --tiff --output collage.tif 10 image-a.png image-b.webp",
+            "pyt-image-collage-slice --webp --output collage.webp 10 image-a.png image-b.webp",
         ),
     )
 
@@ -145,7 +150,7 @@ def build_parser() -> argparse.ArgumentParser:
         "images",
         type=Path,
         nargs="+",
-        help="Paths to two or more JPEG images.",
+        help="Paths to two or more JPEG, PNG, TIFF, or WebP images.",
     )
     parser.add_argument(
         "-o",
@@ -162,7 +167,10 @@ def build_parser() -> argparse.ArgumentParser:
         "--quality",
         type=int,
         default=DEFAULT_JPEG_QUALITY,
-        help=f"JPEG output quality from 1 to 100. Ignored for --png. Default: {DEFAULT_JPEG_QUALITY}.",
+        help=(
+            "JPEG and WebP output quality from 1 to 100. "
+            f"Ignored for --png and --tiff. Default: {DEFAULT_JPEG_QUALITY}."
+        ),
     )
     format_group = parser.add_mutually_exclusive_group()
     format_group.add_argument(
@@ -175,6 +183,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Save a lossless TIFF instead of a high-quality JPEG.",
     )
+    format_group.add_argument(
+        "--webp",
+        action="store_true",
+        help="Save a WebP instead of a high-quality JPEG.",
+    )
 
     return parser
 
@@ -185,20 +198,24 @@ def require_pillow() -> None:
         raise ScriptError("Pillow is required. Install it with: python -m pip install Pillow")
 
 
-def load_jpeg_image(path: Path, *, label: str) -> Any:
-    """Load a JPEG image, apply EXIF orientation, and return an RGB Pillow image."""
+def load_image(path: Path, *, label: str) -> Any:
+    """Load a supported image, apply EXIF orientation, and return an RGB Pillow image."""
     require_pillow()
 
     try:
         with Image.open(path) as probe:
             detected_format = probe.format
-            if detected_format != "JPEG":
-                raise ScriptError(f"The {label} is not a JPEG image. Detected format: {detected_format or 'unknown'}")
+            if detected_format not in SUPPORTED_INPUT_FORMATS:
+                supported = ", ".join(sorted(SUPPORTED_INPUT_FORMATS))
+                raise ScriptError(
+                    f"The {label} is not a supported image. Detected format: {detected_format or 'unknown'}. "
+                    f"Supported formats: {supported}."
+                )
             probe.verify()
 
         with Image.open(path) as image:
-            if image.format != "JPEG":
-                raise ScriptError(f"The {label} is not a JPEG image after reopening: {path}")
+            if image.format not in SUPPORTED_INPUT_FORMATS:
+                raise ScriptError(f"The {label} is not a supported image after reopening: {path}")
 
             corrected = ImageOps.exif_transpose(image)
             corrected.load()
@@ -207,13 +224,13 @@ def load_jpeg_image(path: Path, *, label: str) -> Any:
     except UnidentifiedImageError as exc:
         raise ScriptError(f"The {label} cannot be opened as a valid image: {path}") from exc
     except OSError as exc:
-        raise ScriptError(f"The {label} could not be read as a valid JPEG: {path}") from exc
+        raise ScriptError(f"The {label} could not be read as a valid image: {path}") from exc
 
 
 def require_at_least_two_images(image_paths: Sequence[Path]) -> None:
     """Require at least two image paths."""
     if len(image_paths) < 2:
-        raise ScriptError("At least two JPEG image files are required.")
+        raise ScriptError("At least two image files are required.")
 
 
 def validate_same_aspect_ratio(images: Sequence[Any]) -> None:
@@ -617,6 +634,35 @@ def save_tiff(
         raise ScriptError(f"The output file could not be saved: {output_path}") from exc
 
 
+def save_webp(
+    image: Any,
+    output_path: Path,
+    *,
+    quality: int = DEFAULT_JPEG_QUALITY,
+    icc_profile: bytes | None = None,
+    dpi: tuple[float, float] | None = None,
+) -> None:
+    """Save the output collage as a WebP image."""
+    require_int_range(quality, label="WebP quality", minimum=1, maximum=100)
+    save_kwargs: dict[str, Any] = {
+        "format": "WEBP",
+        "quality": quality,
+    }
+
+    if icc_profile is not None:
+        save_kwargs["icc_profile"] = icc_profile
+
+    if dpi is not None:
+        save_kwargs["dpi"] = dpi
+
+    try:
+        image.save(output_path, **save_kwargs)
+    except PermissionError as exc:
+        raise ScriptError(f"The output file cannot be written because of a permission error: {output_path}") from exc
+    except (OSError, ValueError) as exc:
+        raise ScriptError(f"The output file could not be saved: {output_path}") from exc
+
+
 def save_output_image(
     image: Any,
     output_path: Path,
@@ -633,6 +679,9 @@ def save_output_image(
         return
     if output_format == "tiff":
         save_tiff(image, output_path, icc_profile=icc_profile, dpi=dpi)
+        return
+    if output_format == "webp":
+        save_webp(image, output_path, quality=quality, icc_profile=icc_profile, dpi=dpi)
         return
 
     if output_format != "jpeg":
@@ -695,12 +744,14 @@ def close_images(images: Sequence[Any]) -> None:
             close()
 
 
-def resolve_requested_output_format(*, png: bool, tiff: bool) -> str:
+def resolve_requested_output_format(*, png: bool, tiff: bool, webp: bool) -> str:
     """Return the selected output format from the mutually exclusive CLI flags."""
     if png:
         return "png"
     if tiff:
         return "tiff"
+    if webp:
+        return "webp"
     return "jpeg"
 
 
@@ -710,12 +761,12 @@ def main() -> int:
     args = parser.parse_args()
 
     try:
-        output_format = resolve_requested_output_format(png=args.png, tiff=args.tiff)
-        if output_format == "jpeg":
-            require_int_range(args.quality, label="JPEG quality", minimum=1, maximum=100)
+        output_format = resolve_requested_output_format(png=args.png, tiff=args.tiff, webp=args.webp)
+        if output_format in {"jpeg", "webp"}:
+            require_int_range(args.quality, label="JPEG/WebP quality", minimum=1, maximum=100)
         require_at_least_two_images(args.images)
         image_paths = [
-            require_existing_file(image_path, label=f"Image {index}")
+            require_existing_file(image_path, label=f"Image {index}", suffixes=SUPPORTED_INPUT_SUFFIXES)
             for index, image_path in enumerate(args.images, start=1)
         ]
 
@@ -723,7 +774,7 @@ def main() -> int:
         output_image: Any | None = None
         try:
             for index, image_path in enumerate(image_paths, start=1):
-                images.append(load_jpeg_image(image_path, label=f"image {index}"))
+                images.append(load_image(image_path, label=f"image {index}"))
 
             validate_same_aspect_ratio(images)
             target_size = choose_target_size(images)

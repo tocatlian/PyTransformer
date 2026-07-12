@@ -13,7 +13,7 @@ Dependencies: Python standard library only.
 Safety notes: Requires confirmation unless --yes is passed; skips symlinks and existing targets.
 Example: pyt-files-append-folder-name --dry-run "/path/to/Tokyo"
 Expected result: Files such as photo.jpg become photo-Tokyo.jpg.
-Related scripts: pyt_jpeg_count_variants.py.
+Related scripts: pyt_image_variants_count.py.
 """
 
 from __future__ import annotations

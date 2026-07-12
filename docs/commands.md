@@ -4,7 +4,7 @@ PyTransformer exposes installed console commands through `pyproject.toml`. Each 
 
 Every command supports `-h`/`--help`. Help output describes the command, lists positional and optional arguments, and ends with an `Examples:` section showing installed command invocations.
 
-Command names follow their module names: `pyt_domain_verb_object[_batch].py` becomes `pyt-domain-verb-object[-batch]`. The command inventory module `pyt_help.py` is exposed as `pyt-help`.
+Command names follow their module names: `pyt_<family>_<object>_<action>[_mode].py` becomes `pyt-<family>-<object>-<action>[-mode]`. The command inventory module `pyt_help.py` is exposed as `pyt-help`.
 
 ## Discovery Command
 
@@ -31,6 +31,33 @@ Writes:
 Dependencies:
 
 - Python standard library only.
+
+## Image Commands
+
+### `pyt-image-split`
+
+Splits one or more images into a fixed number of horizontal or vertical output images.
+
+Use when:
+
+- A tall image should be cut into two or more same-width rows.
+- A wide image should be cut into two or more same-height columns.
+- You want the generated files to stay beside the original image.
+- You want numbered suffixes such as `image-1.webp`, `image-2.webp`, and `image-3.webp`.
+
+Writes:
+
+- Numbered JPEG, PNG, TIFF, or WebP slices next to each input image.
+- Existing output files are refused unless `--overwrite` is passed.
+- The slice count defaults to 2 and can be changed with `--count`.
+- Vertical top-to-bottom splitting is the default; pass `--horizontal` for left-to-right columns.
+- JPEG and WebP output default to quality 100.
+- JPEG output uses full chroma detail.
+- Output preserves the original image format and available ICC color profile and resolution metadata.
+
+Dependencies:
+
+- `.[jpeg]` for Pillow.
 
 ## PDF Commands
 
@@ -177,11 +204,11 @@ Dependencies:
 
 - `.[jpeg]`
 
-### `pyt-jpeg-count-variants`
+### `pyt-image-variants-count`
 
-Counts JPEG preset variants grouped by base filename.
+Counts image preset variants grouped by base filename.
 
-Hidden files are skipped by default. Pass `--include-hidden` to include dotfiles.
+Supported extensions are JPEG, PNG, TIFF, and WebP. Hidden files are skipped by default. Pass `--include-hidden` to include dotfiles.
 
 Writes:
 
@@ -191,29 +218,30 @@ Dependencies:
 
 - Python standard library only.
 
-### `pyt-jpeg-sliced-collage`
+### `pyt-image-collage-slice`
 
-Creates a high-resolution JPEG collage from two or more JPEG images by cycling strips from each image.
+Creates a high-resolution image collage from two or more images by cycling strips from each image.
 
 Use when:
 
-- Same-aspect-ratio JPEG images should be interleaved into a sliced collage.
+- Same-aspect-ratio JPEG, PNG, TIFF, or WebP images should be interleaved into a sliced collage.
 - You want vertical strips by default, or horizontal strips with `--horizontal`.
 - You want to choose the destination with `--output` or JPEG quality with `--quality`.
-- You want a lossless PNG output with `--png`, or a lossless TIFF output with `--tiff`.
+- You want PNG output with `--png`, TIFF output with `--tiff`, or WebP output with `--webp`.
 
 Writes:
 
-- One JPEG, PNG, or TIFF collage in the current working directory, or at `--output`.
+- One JPEG, PNG, TIFF, or WebP collage in the current working directory, or at `--output`.
 - Existing output files are refused unless `--overwrite` is passed.
 - JPEG output defaults to quality 100, full chroma detail, and the first available input ICC color profile and resolution metadata.
 - JPEG output preserves the first available input JFIF resolution unit and exact density when present, along with its DPI representation.
 - PNG output is lossless and also preserves the first available input ICC color profile and DPI.
 - TIFF output is lossless LZW-compressed TIFF and also preserves the first available input ICC color profile and DPI.
+- WebP output uses the requested quality and preserves the first available input ICC color profile and DPI when Pillow supports it.
 
 Dependencies:
 
-- `.[jpeg]`
+- `.[jpeg]` for Pillow.
 
 ## File And Text Commands
 

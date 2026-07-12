@@ -45,7 +45,7 @@ cat /tmp/pytransformer-demo/combined.txt
 The base install has no runtime dependencies and supports these standard-library commands:
 
 - `pyt-files-append-folder-name`
-- `pyt-jpeg-count-variants`
+- `pyt-image-variants-count`
 - `pyt-text-concatenate`
 
 Install optional dependency groups only for the commands you need:
@@ -101,13 +101,14 @@ The default tox environments run the Python version matrix when those interprete
 
 ## Naming Standard
 
-CLI modules usually use `pyt_domain_verb_object[_batch]` names. The installed command is the same name with underscores changed to hyphens. The inventory command `pyt_help.py` uses the shorter `pyt-help` name.
+CLI modules usually use `pyt_<family>_<object>_<action>[_mode]` names. The installed command is the same name with underscores changed to hyphens. The inventory command `pyt_help.py` uses the shorter `pyt-help` name.
 
 Python modules:
 
 ```text
 src/pytransformer/cli/pyt_pdf_extract_text.py
 src/pytransformer/cli/pyt_jpeg_strip_metadata.py
+src/pytransformer/cli/pyt_image_split.py
 src/pytransformer/core/common.py
 ```
 
@@ -117,6 +118,7 @@ Installed console commands:
 pyt-help
 pyt-pdf-extract-text
 pyt-jpeg-strip-metadata
+pyt-image-split
 pyt-mp4-transcribe-batch
 ```
 
@@ -127,6 +129,7 @@ This gives engineers importable Python modules and gives command-line users idio
 | Python module | Console command | Purpose | Example | Writes data? | Setup |
 | --- | --- | --- | --- | --- | --- |
 | `pyt_help.py` | `pyt-help` | List available PyTransformer commands. | `pyt-help --verbose` | Read-only. | Standard library only. |
+| `pyt_image_split.py` | `pyt-image-split` | Split one or more images into horizontal or vertical slices. | `pyt-image-split --horizontal --count 2 "/path/to/image.webp"` | Writes numbered image slices next to each source image; preserves format and available color and resolution metadata; refuses to overwrite unless `--overwrite` is passed. | Requires `.[jpeg]` for Pillow. |
 | `pyt_pdf_extract_text.py` | `pyt-pdf-extract-text` | Extract PDF text with optional OCR fallback. | `pyt-pdf-extract-text --no-ocr "/path/to/file.pdf"` | Writes a `.txt` file and extraction log. | Requires `.[pdf]`; OCR also needs `.[ocr]` and Tesseract. |
 | `pyt_pdf_extract_selectable_text.py` | `pyt-pdf-extract-selectable-text` | Extract selectable PDF text with a lightweight parser. | `pyt-pdf-extract-selectable-text "/path/to/file.pdf"` | Writes a `.txt` file. | Requires `.[pdf]`. |
 | `pyt_pdf_extract_selectable_text_batch.py` | `pyt-pdf-extract-selectable-text-batch` | Batch extract selectable text from PDFs in a folder. | `pyt-pdf-extract-selectable-text-batch --output-folder "/path/to/text" "/path/to/pdfs"` | Writes one `.txt` file per PDF. | Requires `.[pdf]`. |
@@ -136,8 +139,8 @@ This gives engineers importable Python modules and gives command-line users idio
 | `pyt_mp4_transcribe_batch.py` | `pyt-mp4-transcribe-batch` | Batch transcribe MP4 files in a folder. | `pyt-mp4-transcribe-batch --output-folder "/path/to/transcripts" "/path/to/videos"` | Writes one transcript per MP4. | Requires `.[mp4]`, FFmpeg, and network access. |
 | `pyt_jpeg_show_metadata.py` | `pyt-jpeg-show-metadata` | Show embedded metadata for one JPEG. | `pyt-jpeg-show-metadata --full-values "/path/to/file.jpg"` | Read-only. | Requires `.[jpeg]`. |
 | `pyt_jpeg_strip_metadata.py` | `pyt-jpeg-strip-metadata` | Create cleaned JPEG copies without descriptive metadata. | `pyt-jpeg-strip-metadata --dry-run "/path/to/images"` | Writes cleaned copies to a separate folder by default. | Requires `.[jpeg]`. |
-| `pyt_jpeg_count_variants.py` | `pyt-jpeg-count-variants` | Count preset variants grouped by JPEG base filename. | `pyt-jpeg-count-variants --list-presets --include-hidden "/path/to/images"` | Read-only. | Standard library only. |
-| `pyt_jpeg_sliced_collage.py` | `pyt-jpeg-sliced-collage` | Create a sliced collage from two or more JPEG images. | `pyt-jpeg-sliced-collage --tiff --output collage.tif 10 image-a.jpg image-b.jpg image-c.jpg` | Writes one high-quality JPEG, lossless PNG, or lossless TIFF collage; preserves available color and resolution metadata; refuses to overwrite unless `--overwrite` is passed. | Requires `.[jpeg]`. |
+| `pyt_image_variants_count.py` | `pyt-image-variants-count` | Count preset variants grouped by image base filename. | `pyt-image-variants-count --list-presets --include-hidden "/path/to/images"` | Read-only. | Standard library only. |
+| `pyt_image_collage_slice.py` | `pyt-image-collage-slice` | Create a sliced collage from two or more images. | `pyt-image-collage-slice --webp --output collage.webp 10 image-a.jpg image-b.png image-c.webp` | Writes one JPEG, PNG, TIFF, or WebP collage; preserves available color and resolution metadata; refuses to overwrite unless `--overwrite` is passed. | Requires `.[jpeg]` for Pillow. |
 | `pyt_files_append_folder_name.py` | `pyt-files-append-folder-name` | Append the containing folder name to filenames. | `pyt-files-append-folder-name --dry-run "/path/to/Tokyo"` | Renames files; requires confirmation unless `--yes` is passed. | Standard library only. |
 | `pyt_text_concatenate.py` | `pyt-text-concatenate` | Concatenate text files in a folder. | `pyt-text-concatenate --output "/path/to/combined.txt" "/path/to/text-files"` | Writes one combined text file. | Standard library only. |
 

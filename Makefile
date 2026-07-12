@@ -2,11 +2,12 @@ PYTHON ?= python3
 PYTHONPATH := src
 COMMAND_MODULES := \
 	pyt_files_append_folder_name \
+	pyt_image_split \
 	pyt_help \
 	pyt_jpeg_show_metadata \
 	pyt_jpeg_strip_metadata \
-	pyt_jpeg_count_variants \
-	pyt_jpeg_sliced_collage \
+	pyt_image_variants_count \
+	pyt_image_collage_slice \
 	pyt_mp4_split_chunks \
 	pyt_mp4_transcribe_batch \
 	pyt_mp4_transcribe \
@@ -17,11 +18,12 @@ COMMAND_MODULES := \
 	pyt_text_concatenate
 CONSOLE_COMMANDS := \
 	pyt-files-append-folder-name \
+	pyt-image-split \
 	pyt-help \
 	pyt-jpeg-show-metadata \
 	pyt-jpeg-strip-metadata \
-	pyt-jpeg-count-variants \
-	pyt-jpeg-sliced-collage \
+	pyt-image-variants-count \
+	pyt-image-collage-slice \
 	pyt-mp4-split-chunks \
 	pyt-mp4-transcribe-batch \
 	pyt-mp4-transcribe \
@@ -145,7 +147,7 @@ smoke:
 	printf 'two' > "$$tmpdir/rename/Tokyo/two.txt"; \
 	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytransformer.cli.pyt_text_concatenate --output "$$tmpdir/combined.txt" "$$tmpdir/texts"; \
 	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytransformer.cli.pyt_help --names-only; \
-	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytransformer.cli.pyt_jpeg_count_variants --list-presets "$$tmpdir/images"; \
+	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytransformer.cli.pyt_image_variants_count --list-presets "$$tmpdir/images"; \
 	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytransformer.cli.pyt_files_append_folder_name --dry-run "$$tmpdir/rename/Tokyo"; \
 	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytransformer.cli.pyt_files_append_folder_name --yes "$$tmpdir/rename/Tokyo"
 
@@ -171,9 +173,9 @@ smoke-jpeg:
 	mkdir -p "$$tmpdir/images" "$$tmpdir/clean"; \
 	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -c 'import sys; from pathlib import Path; from PIL import Image; folder = Path(sys.argv[1]); exif = Image.Exif(); exif[0x010F] = "PyTransformer"; exif[0x0131] = "Smoke"; colors = {"photo-warm.jpg": (220, 120, 90), "photo-cool.jpg": (70, 130, 210), "photo-neutral.jpg": (140, 140, 140)}; [Image.new("RGB", (24, 24), color).save(folder / name, "JPEG", exif=exif, comment=b"private smoke comment") for name, color in colors.items()]' "$$tmpdir/images"; \
 	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytransformer.cli.pyt_jpeg_show_metadata "$$tmpdir/images/photo-warm.jpg"; \
-	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytransformer.cli.pyt_jpeg_count_variants --list-presets "$$tmpdir/images"; \
-	cd "$$tmpdir" && PYTHONPATH="$(CURDIR)/$(PYTHONPATH)" $(PYTHON) -m pytransformer.cli.pyt_jpeg_sliced_collage 8 "$$tmpdir/images/photo-warm.jpg" "$$tmpdir/images/photo-cool.jpg" "$$tmpdir/images/photo-neutral.jpg"; \
-	cd "$$tmpdir" && PYTHONPATH="$(CURDIR)/$(PYTHONPATH)" $(PYTHON) -m pytransformer.cli.pyt_jpeg_sliced_collage --tiff --output "$$tmpdir/collage.tif" 8 "$$tmpdir/images/photo-warm.jpg" "$$tmpdir/images/photo-cool.jpg" "$$tmpdir/images/photo-neutral.jpg"; \
+	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytransformer.cli.pyt_image_variants_count --list-presets "$$tmpdir/images"; \
+	cd "$$tmpdir" && PYTHONPATH="$(CURDIR)/$(PYTHONPATH)" $(PYTHON) -m pytransformer.cli.pyt_image_collage_slice 8 "$$tmpdir/images/photo-warm.jpg" "$$tmpdir/images/photo-cool.jpg" "$$tmpdir/images/photo-neutral.jpg"; \
+	cd "$$tmpdir" && PYTHONPATH="$(CURDIR)/$(PYTHONPATH)" $(PYTHON) -m pytransformer.cli.pyt_image_collage_slice --tiff --output "$$tmpdir/collage.tif" 8 "$$tmpdir/images/photo-warm.jpg" "$$tmpdir/images/photo-cool.jpg" "$$tmpdir/images/photo-neutral.jpg"; \
 	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytransformer.cli.pyt_jpeg_strip_metadata --quiet --output-folder "$$tmpdir/clean" "$$tmpdir/images"; \
 	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytransformer.cli.pyt_jpeg_show_metadata "$$tmpdir/clean/photo-warm.jpg"; \
 	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -c 'import sys; from pathlib import Path; from pytransformer.core.jpeg_metadata import inspect_embedded_metadata; metadata = inspect_embedded_metadata(Path(sys.argv[1])); leftovers = sorted(key for key in metadata if key.startswith("EXIF.") or key == "INFO.comment"); sys.exit(f"metadata was not stripped: {leftovers}") if leftovers else None' "$$tmpdir/clean/photo-warm.jpg"; \

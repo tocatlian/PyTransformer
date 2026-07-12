@@ -3,15 +3,15 @@
 # Copyright (c) 2023-2026 Paul Tocatlian
 
 """
-Script: pyt_jpeg_count_variants.py
-Purpose: Count JPEG preset variants grouped by base filename.
-When to use: Use for folders where files are named <base>-<preset>.jpg and variant coverage should be checked.
+Script: pyt_image_variants_count.py
+Purpose: Count image preset variants grouped by base filename.
+When to use: Use for folders where files are named <base>-<preset>.<ext> and variant coverage should be checked.
 Changes: Read-only; prints a grouped summary to standard output.
 Inputs: Folder path; optional --list-presets and --include-hidden.
 Environment variables: None.
 Dependencies: Python standard library only.
 Safety notes: Does not recurse, skips hidden files unless requested, skips symlinks, and does not modify files.
-Example: pyt-jpeg-count-variants --list-presets "/path/to/images"
+Example: pyt-image-variants-count --list-presets "/path/to/images"
 Expected result: Counts for each base filename plus duplicate-preset warnings.
 Related scripts: pyt_files_append_folder_name.py.
 """
@@ -32,12 +32,12 @@ from pytransformer.core.common import (
     sorted_directory_items,
 )
 
-JPEG_EXTENSIONS = {".jpg", ".jpeg", ".jpe", ".jfif"}
+IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".jpe", ".jfif", ".png", ".tif", ".tiff", ".webp"}
 
 
 @dataclass
 class VariantAnalysis:
-    """Grouped JPEG variant analysis for one folder."""
+    """Grouped image variant analysis for one folder."""
 
     presets_by_base_name: dict[str, set[str]] = field(default_factory=dict)
     duplicates_by_base_name: dict[str, list[str]] = field(default_factory=dict)
@@ -50,23 +50,23 @@ class VariantAnalysis:
 def build_parser() -> argparse.ArgumentParser:
     """Build the command-line parser."""
     parser = build_command_parser(
-        description="Analyze JPEG files in a folder and count preset variations for each base file name.",
+        description="Analyze image files in a folder and count preset variations for each base file name.",
         examples=(
-            'pyt-jpeg-count-variants "/path/to/images"',
-            'pyt-jpeg-count-variants --list-presets --include-hidden "/path/to/images"',
+            'pyt-image-variants-count "/path/to/images"',
+            'pyt-image-variants-count --list-presets --include-hidden "/path/to/images"',
         ),
     )
 
     parser.add_argument(
         "folder",
         type=Path,
-        help="Path to the folder containing JPEG files to analyze.",
+        help="Path to the folder containing image files to analyze.",
     )
 
     parser.add_argument(
         "--list-presets", action="store_true", help="List the preset names found for each base file name."
     )
-    parser.add_argument("--include-hidden", action="store_true", help="Include hidden JPEG files.")
+    parser.add_argument("--include-hidden", action="store_true", help="Include hidden image files.")
 
     return parser
 
@@ -81,13 +81,13 @@ def is_hidden_file(path: Path) -> bool:
     return path.name.startswith(".")
 
 
-def is_jpeg_file(path: Path) -> bool:
+def is_image_file(path: Path) -> bool:
     """
-    Return True if the file has a common JPEG extension.
+    Return True if the file has a supported image extension.
 
     The comparison is case insensitive, so .jpg, .JPG, and .Jpg match.
     """
-    return path.suffix.lower() in JPEG_EXTENSIONS
+    return path.suffix.lower() in IMAGE_EXTENSIONS
 
 
 def parse_file_name(path: Path) -> tuple[str, str] | None:
@@ -159,7 +159,7 @@ def analyze_folder(folder_path: Path, *, include_hidden: bool = False) -> Varian
                 total_files_skipped += 1
                 continue
 
-            if not is_jpeg_file(item):
+            if not is_image_file(item):
                 total_files_skipped += 1
                 continue
 
@@ -220,7 +220,7 @@ def print_results(results: VariantAnalysis, list_presets: bool) -> None:
     print()
 
     if not results.presets_by_base_name:
-        print("No matching JPEG files found.")
+        print("No matching image files found.")
     else:
         for base_name in sorted(results.presets_by_base_name):
             presets = sorted(results.presets_by_base_name[base_name], key=str.casefold)

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>pyt-jpeg-strip-metadata - PyTransformer</title>
+  <title>pyt-image-collage-slice - PyTransformer</title>
   <link rel="stylesheet" href="../styles.css">
 </head>
 <body>
@@ -30,22 +30,24 @@
 <li><a href="pyt-mp4-transcribe.html">pyt-mp4-transcribe</a></li>
 <li><a href="pyt-mp4-transcribe-batch.html">pyt-mp4-transcribe-batch</a></li>
 <li><a href="pyt-jpeg-show-metadata.html">pyt-jpeg-show-metadata</a></li>
-<li><a href="pyt-jpeg-strip-metadata.html" aria-current="page">pyt-jpeg-strip-metadata</a></li>
+<li><a href="pyt-jpeg-strip-metadata.html">pyt-jpeg-strip-metadata</a></li>
 <li><a href="pyt-image-variants-count.html">pyt-image-variants-count</a></li>
-<li><a href="pyt-image-collage-slice.html">pyt-image-collage-slice</a></li>
+<li><a href="pyt-image-collage-slice.html" aria-current="page">pyt-image-collage-slice</a></li>
 <li><a href="pyt-files-append-folder-name.html">pyt-files-append-folder-name</a></li>
 <li><a href="pyt-text-concatenate.html">pyt-text-concatenate</a></li>
 </ul></nav>
 <main class="site-main">
 <article class="content">
-<p class="source-note">Generated from docs/commands.md#pyt-jpeg-strip-metadata.</p>
+<p class="source-note">Generated from docs/commands.md#pyt-image-collage-slice.</p>
 <p class="breadcrumb"><a href="../commands.html">Command Guide</a> / JPEG Commands</p>
-<h1 id="pyt-jpeg-strip-metadata"><code>pyt-jpeg-strip-metadata</code></h1>
-<p>Creates cleaned JPEG copies with descriptive metadata removed.</p>
+<h1 id="pyt-image-collage-slice"><code>pyt-image-collage-slice</code></h1>
+<p>Creates a high-resolution image collage from two or more images by cycling strips from each image.</p>
+<p>Use when:</p>
+<ul><li>Same-aspect-ratio JPEG, PNG, TIFF, or WebP images should be interleaved into a sliced collage.</li><li>You want vertical strips by default, or horizontal strips with <code>--horizontal</code>.</li><li>You want to choose the destination with <code>--output</code> or JPEG quality with <code>--quality</code>.</li><li>You want PNG output with <code>--png</code>, TIFF output with <code>--tiff</code>, or WebP output with <code>--webp</code>.</li></ul>
 <p>Writes:</p>
-<ul><li>Cleaned JPEG copies in a separate output folder by default.</li></ul>
+<ul><li>One JPEG, PNG, TIFF, or WebP collage in the current working directory, or at <code>--output</code>.</li><li>Existing output files are refused unless <code>--overwrite</code> is passed.</li><li>JPEG output defaults to quality 100, full chroma detail, and the first available input ICC color profile and resolution metadata.</li><li>JPEG output preserves the first available input JFIF resolution unit and exact density when present, along with its DPI representation.</li><li>PNG output is lossless and also preserves the first available input ICC color profile and DPI.</li><li>TIFF output is lossless LZW-compressed TIFF and also preserves the first available input ICC color profile and DPI.</li><li>WebP output uses the requested quality and preserves the first available input ICC color profile and DPI when Pillow supports it.</li></ul>
 <p>Dependencies:</p>
-<ul><li><code>.[jpeg]</code></li></ul>
+<ul><li><code>.[jpeg]</code> for Pillow.</li></ul>
 </article>
 </main>
 </div>

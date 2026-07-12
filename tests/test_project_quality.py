@@ -77,7 +77,7 @@ class ProjectQualityTests(unittest.TestCase):
 
     def test_command_modules_are_importable_python_modules(self) -> None:
         self.assertTrue(COMMAND_MODULES, "No command modules were discovered.")
-        allowed_domains = {"files", "help", "jpeg", "mp4", "pdf", "text"}
+        allowed_domains = {"files", "help", "image", "jpeg", "mp4", "pdf", "text"}
         retired_module_names = {
             "files_append_folder_name",
             "jpeg_metadata_show",
@@ -86,6 +86,9 @@ class ProjectQualityTests(unittest.TestCase):
             "jpeg_show_metadata",
             "jpeg_strip_metadata",
             "jpeg_count_variants",
+            "jpeg_sliced_collage",
+            "img_split_image",
+            "image_split_image",
             "mp4_chunk",
             "mp4_dir_to_txt",
             "mp4_file_to_txt",
@@ -182,7 +185,7 @@ class ProjectQualityTests(unittest.TestCase):
         for module_name in [
             "pyt_files_append_folder_name",
             "pyt_jpeg_strip_metadata",
-            "pyt_jpeg_count_variants",
+            "pyt_image_variants_count",
             "pyt_mp4_transcribe_batch",
             "pyt_pdf_extract_selectable_text_batch",
             "pyt_text_concatenate",
@@ -541,22 +544,23 @@ class StandardLibraryScriptTests(unittest.TestCase):
             self.assertTrue(source.exists())
             self.assertFalse((folder / "one-Paris.jpg").exists())
 
-    def test_pyt_jpeg_count_variants_groups_case_insensitive_extensions(self) -> None:
-        script = load_cli_module("pyt_jpeg_count_variants")
+    def test_pyt_image_variants_count_groups_case_insensitive_extensions(self) -> None:
+        script = load_cli_module("pyt_image_variants_count")
         with tempfile.TemporaryDirectory() as tmp:
             folder = Path(tmp)
             (folder / "photo-warm.jpg").touch()
-            (folder / "photo-cool.JPG").touch()
+            (folder / "photo-cool.PNG").touch()
+            (folder / "photo-neutral.webp").touch()
             (folder / "photo.jpg").touch()
             (folder / ".hidden-warm.jpg").touch()
 
             results = script.analyze_folder(folder)
-            self.assertEqual(results.total_matching_jpg_files_processed, 2)
+            self.assertEqual(results.total_matching_jpg_files_processed, 3)
             self.assertEqual(results.total_files_skipped, 2)
-            self.assertEqual(results.presets_by_base_name["photo"], {"warm", "cool"})
+            self.assertEqual(results.presets_by_base_name["photo"], {"warm", "cool", "neutral"})
 
-    def test_pyt_jpeg_count_variants_tracks_duplicates_and_prints_summary(self) -> None:
-        script = load_cli_module("pyt_jpeg_count_variants")
+    def test_pyt_image_variants_count_tracks_duplicates_and_prints_summary(self) -> None:
+        script = load_cli_module("pyt_image_variants_count")
         with tempfile.TemporaryDirectory() as tmp:
             folder = Path(tmp)
             (folder / "photo-warm.jpg").touch()
