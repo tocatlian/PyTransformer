@@ -12,7 +12,7 @@ Environment variables: None.
 Dependencies: pillow.
 Safety notes: Validates images, applies EXIF orientation, preserves format and available ICC/resolution metadata,
 and avoids overwrites by default.
-Example: pyt-image-split --count 2 --horizontal image.webp
+Example: pyt-image-split --count 2 --vertical image.webp
 Expected result: Images named image-1.webp and image-2.webp next to image.webp.
 Related scripts: pyt_image_collage_slice.py, pyt_jpeg_show_metadata.py, pyt_jpeg_strip_metadata.py.
 """
@@ -70,7 +70,7 @@ def build_parser() -> argparse.ArgumentParser:
         examples=(
             "pyt-image-split image.jpg",
             "pyt-image-split --count 3 first.jpg second.png",
-            "pyt-image-split --horizontal --count 2 wide-image.webp",
+            "pyt-image-split --vertical --count 2 wide-image.webp",
             "pyt-image-split --orientation vertical --quality 95 image.jpg",
         ),
     )
@@ -80,19 +80,19 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_const",
         const="horizontal",
         dest="orientation",
-        help="Split each image into left-to-right columns.",
+        help="Split each image into horizontal strips.",
     )
     orientation_group.add_argument(
         "--vertical",
         action="store_const",
         const="vertical",
         dest="orientation",
-        help="Split each image into top-to-bottom rows. This is the default.",
+        help="Split each image into vertical strips. This is the default.",
     )
     orientation_group.add_argument(
         "--orientation",
         choices=sorted(SUPPORTED_ORIENTATIONS),
-        help="Split orientation. Use 'vertical' for top-to-bottom rows or 'horizontal' for left-to-right columns.",
+        help="Split orientation. Use 'vertical' for columns or 'horizontal' for rows.",
     )
     parser.set_defaults(orientation="vertical")
     parser.add_argument(
@@ -168,25 +168,7 @@ def load_image(path: Path) -> tuple[Any, str]:
         raise ScriptError(f"The image could not be read: {path}") from exc
 
 
-def calculate_vertical_bounds(height: int, slice_count: int) -> list[tuple[int, int]]:
-    """Return stacked crop bounds that cover the full image height."""
-    if slice_count > height:
-        raise ScriptError(
-            f"The slice count is larger than the image height. Image height: {height}px. Slice count: {slice_count}."
-        )
-
-    bounds = []
-    for index in range(slice_count):
-        top = math.floor(index * height / slice_count)
-        bottom = math.floor((index + 1) * height / slice_count)
-        if bottom <= top:
-            raise ScriptError("The requested split would create an empty image slice.")
-        bounds.append((top, bottom))
-
-    return bounds
-
-
-def calculate_horizontal_bounds(width: int, slice_count: int) -> list[tuple[int, int]]:
+def calculate_vertical_bounds(width: int, slice_count: int) -> list[tuple[int, int]]:
     """Return side-by-side crop bounds that cover the full image width."""
     if slice_count > width:
         raise ScriptError(
@@ -200,6 +182,24 @@ def calculate_horizontal_bounds(width: int, slice_count: int) -> list[tuple[int,
         if right <= left:
             raise ScriptError("The requested split would create an empty image slice.")
         bounds.append((left, right))
+
+    return bounds
+
+
+def calculate_horizontal_bounds(height: int, slice_count: int) -> list[tuple[int, int]]:
+    """Return stacked crop bounds that cover the full image height."""
+    if slice_count > height:
+        raise ScriptError(
+            f"The slice count is larger than the image height. Image height: {height}px. Slice count: {slice_count}."
+        )
+
+    bounds = []
+    for index in range(slice_count):
+        top = math.floor(index * height / slice_count)
+        bottom = math.floor((index + 1) * height / slice_count)
+        if bottom <= top:
+            raise ScriptError("The requested split would create an empty image slice.")
+        bounds.append((top, bottom))
 
     return bounds
 
@@ -244,15 +244,15 @@ def get_save_kwargs(image: Any, image_format: str, *, quality: int) -> dict[str,
 
 
 def split_image_vertically(image: Any, slice_count: int) -> list[Any]:
-    """Split an image into equal-height vertical slices."""
-    bounds = calculate_vertical_bounds(image.height, slice_count)
-    return [image.crop((0, top, image.width, bottom)) for top, bottom in bounds]
+    """Split an image into equal-width vertical slices."""
+    bounds = calculate_vertical_bounds(image.width, slice_count)
+    return [image.crop((left, 0, right, image.height)) for left, right in bounds]
 
 
 def split_image_horizontally(image: Any, slice_count: int) -> list[Any]:
-    """Split an image into equal-width horizontal slices."""
-    bounds = calculate_horizontal_bounds(image.width, slice_count)
-    return [image.crop((left, 0, right, image.height)) for left, right in bounds]
+    """Split an image into equal-height horizontal slices."""
+    bounds = calculate_horizontal_bounds(image.height, slice_count)
+    return [image.crop((0, top, image.width, bottom)) for top, bottom in bounds]
 
 
 def split_image(image: Any, slice_count: int, orientation: str) -> list[Any]:

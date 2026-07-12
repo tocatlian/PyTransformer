@@ -40,8 +40,8 @@ Splits one or more images into a fixed number of horizontal or vertical output i
 
 Use when:
 
-- A tall image should be cut into two or more same-width rows.
-- A wide image should be cut into two or more same-height columns.
+- A tall image should be cut into two or more horizontal strips.
+- A wide image should be cut into two or more vertical strips.
 - You want the generated files to stay beside the original image.
 - You want numbered suffixes such as `image-1.webp`, `image-2.webp`, and `image-3.webp`.
 
@@ -50,7 +50,8 @@ Writes:
 - Numbered JPEG, PNG, TIFF, or WebP slices next to each input image.
 - Existing output files are refused unless `--overwrite` is passed.
 - The slice count defaults to 2 and can be changed with `--count`.
-- Vertical top-to-bottom splitting is the default; pass `--horizontal` for left-to-right columns.
+- Vertical strip splitting is the default; for example, a 6x4 image split in two creates two 3x4 images.
+- Pass `--horizontal` for horizontal strips; for example, a 4x6 image split in two creates two 4x3 images.
 - JPEG and WebP output default to quality 100.
 - JPEG output uses full chroma detail.
 - Output preserves the original image format and available ICC color profile and resolution metadata.

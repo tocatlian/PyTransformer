@@ -60,9 +60,9 @@
 <h3 id="pyt-image-split"><code>pyt-image-split</code> <a class="command-page-link" href="commands/pyt-image-split.html">Command page</a></h3>
 <p>Splits one or more images into a fixed number of horizontal or vertical output images.</p>
 <p>Use when:</p>
-<ul><li>A tall image should be cut into two or more same-width rows.</li><li>A wide image should be cut into two or more same-height columns.</li><li>You want the generated files to stay beside the original image.</li><li>You want numbered suffixes such as <code>image-1.webp</code>, <code>image-2.webp</code>, and <code>image-3.webp</code>.</li></ul>
+<ul><li>A tall image should be cut into two or more horizontal strips.</li><li>A wide image should be cut into two or more vertical strips.</li><li>You want the generated files to stay beside the original image.</li><li>You want numbered suffixes such as <code>image-1.webp</code>, <code>image-2.webp</code>, and <code>image-3.webp</code>.</li></ul>
 <p>Writes:</p>
-<ul><li>Numbered JPEG, PNG, TIFF, or WebP slices next to each input image.</li><li>Existing output files are refused unless <code>--overwrite</code> is passed.</li><li>The slice count defaults to 2 and can be changed with <code>--count</code>.</li><li>Vertical top-to-bottom splitting is the default; pass <code>--horizontal</code> for left-to-right columns.</li><li>JPEG and WebP output default to quality 100.</li><li>JPEG output uses full chroma detail.</li><li>Output preserves the original image format and available ICC color profile and resolution metadata.</li></ul>
+<ul><li>Numbered JPEG, PNG, TIFF, or WebP slices next to each input image.</li><li>Existing output files are refused unless <code>--overwrite</code> is passed.</li><li>The slice count defaults to 2 and can be changed with <code>--count</code>.</li><li>Vertical strip splitting is the default; for example, a 6x4 image split in two creates two 3x4 images.</li><li>Pass <code>--horizontal</code> for horizontal strips; for example, a 4x6 image split in two creates two 4x3 images.</li><li>JPEG and WebP output default to quality 100.</li><li>JPEG output uses full chroma detail.</li><li>Output preserves the original image format and available ICC color profile and resolution metadata.</li></ul>
 <p>Dependencies:</p>
 <ul><li><code>.[jpeg]</code> for Pillow.</li></ul>
 <h2 id="pdf-commands">PDF Commands</h2>

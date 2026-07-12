@@ -52,21 +52,21 @@ class ImgSplitImageUnitTests(unittest.TestCase):
         with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
             pyt_image_split.build_parser().parse_args(["--horizontal", "--vertical", "image.jpg"])
 
-    def test_calculate_vertical_bounds_covers_entire_height(self) -> None:
+    def test_calculate_vertical_bounds_covers_entire_width(self) -> None:
         bounds = pyt_image_split.calculate_vertical_bounds(10, 3)
 
         self.assertEqual(bounds, [(0, 3), (3, 6), (6, 10)])
 
-    def test_calculate_horizontal_bounds_covers_entire_width(self) -> None:
+    def test_calculate_horizontal_bounds_covers_entire_height(self) -> None:
         bounds = pyt_image_split.calculate_horizontal_bounds(10, 3)
 
         self.assertEqual(bounds, [(0, 3), (3, 6), (6, 10)])
 
-    def test_calculate_vertical_bounds_rejects_more_slices_than_rows(self) -> None:
+    def test_calculate_vertical_bounds_rejects_more_slices_than_columns(self) -> None:
         with self.assertRaises(ScriptError):
             pyt_image_split.calculate_vertical_bounds(2, 3)
 
-    def test_calculate_horizontal_bounds_rejects_more_slices_than_columns(self) -> None:
+    def test_calculate_horizontal_bounds_rejects_more_slices_than_rows(self) -> None:
         with self.assertRaises(ScriptError):
             pyt_image_split.calculate_horizontal_bounds(2, 3)
 
@@ -171,21 +171,21 @@ class ImgSplitImageUnitTests(unittest.TestCase):
 
 @unittest.skipIf(Image is None, "Pillow is required for image split tests.")
 class ImgSplitImagePillowTests(unittest.TestCase):
-    def test_split_image_vertically_preserves_width_and_all_rows(self) -> None:
+    def test_split_image_vertically_preserves_height_and_all_columns(self) -> None:
         assert Image is not None
-        image = Image.new("RGB", (3, 5), (255, 0, 0))
+        image = Image.new("RGB", (6, 4), (255, 0, 0))
 
         slices = pyt_image_split.split_image_vertically(image, 2)
 
-        self.assertEqual([image_slice.size for image_slice in slices], [(3, 2), (3, 3)])
+        self.assertEqual([image_slice.size for image_slice in slices], [(3, 4), (3, 4)])
 
-    def test_split_image_horizontally_preserves_height_and_all_columns(self) -> None:
+    def test_split_image_horizontally_preserves_width_and_all_rows(self) -> None:
         assert Image is not None
-        image = Image.new("RGB", (5, 3), (255, 0, 0))
+        image = Image.new("RGB", (3, 5), (255, 0, 0))
 
         slices = pyt_image_split.split_image_horizontally(image, 2)
 
-        self.assertEqual([image_slice.size for image_slice in slices], [(2, 3), (3, 3)])
+        self.assertEqual([image_slice.size for image_slice in slices], [(3, 2), (3, 3)])
 
     def test_split_image_dispatches_vertical_and_horizontal_orientations(self) -> None:
         assert Image is not None
@@ -194,8 +194,8 @@ class ImgSplitImagePillowTests(unittest.TestCase):
         vertical_slices = pyt_image_split.split_image(image, 2, "vertical")
         horizontal_slices = pyt_image_split.split_image(image, 2, "horizontal")
 
-        self.assertEqual([image_slice.size for image_slice in vertical_slices], [(5, 2), (5, 3)])
-        self.assertEqual([image_slice.size for image_slice in horizontal_slices], [(2, 5), (3, 5)])
+        self.assertEqual([image_slice.size for image_slice in vertical_slices], [(2, 5), (3, 5)])
+        self.assertEqual([image_slice.size for image_slice in horizontal_slices], [(5, 2), (5, 3)])
 
     def test_process_image_writes_vertical_sibling_split_images_by_default(self) -> None:
         assert Image is not None
@@ -217,9 +217,9 @@ class ImgSplitImagePillowTests(unittest.TestCase):
                 [(temp_path / "image-1.png").resolve(), (temp_path / "image-2.png").resolve()],
             )
             with Image.open(output_paths[0]) as first_output:
-                self.assertEqual(first_output.size, (3, 2))
+                self.assertEqual(first_output.size, (1, 4))
             with Image.open(output_paths[1]) as second_output:
-                self.assertEqual(second_output.size, (3, 2))
+                self.assertEqual(second_output.size, (2, 4))
 
     def test_process_image_writes_horizontal_sibling_split_images(self) -> None:
         assert Image is not None
@@ -241,9 +241,9 @@ class ImgSplitImagePillowTests(unittest.TestCase):
                 [(temp_path / "image-1.png").resolve(), (temp_path / "image-2.png").resolve()],
             )
             with Image.open(output_paths[0]) as first_output:
-                self.assertEqual(first_output.size, (2, 3))
+                self.assertEqual(first_output.size, (4, 1))
             with Image.open(output_paths[1]) as second_output:
-                self.assertEqual(second_output.size, (2, 3))
+                self.assertEqual(second_output.size, (4, 2))
 
     def test_process_image_rejects_existing_outputs_without_overwrite(self) -> None:
         assert Image is not None
@@ -306,10 +306,10 @@ class ImgSplitImagePillowTests(unittest.TestCase):
             )
             with Image.open(output_paths[0]) as first_output:
                 self.assertEqual(first_output.format, "WEBP")
-                self.assertEqual(first_output.size, (2, 4))
+                self.assertEqual(first_output.size, (4, 2))
             with Image.open(output_paths[1]) as second_output:
                 self.assertEqual(second_output.format, "WEBP")
-                self.assertEqual(second_output.size, (2, 4))
+                self.assertEqual(second_output.size, (4, 2))
 
     def test_main_prints_written_paths(self) -> None:
         assert Image is not None
