@@ -129,6 +129,7 @@ This gives engineers importable Python modules and gives command-line users idio
 | Python module | Console command | Purpose | Example | Writes data? | Setup |
 | --- | --- | --- | --- | --- | --- |
 | `pyt_help.py` | `pyt-help` | List available PyTransformer commands. | `pyt-help --verbose` | Read-only. | Standard library only. |
+| `pyt_image_to_webp.py` | `pyt-image-to-webp` | Convert JPEG, PNG, or TIFF images to WebP. | `pyt-image-to-webp --quality 98 "/path/to/image.jpg"` | Writes `.webp` files next to each source image; preserves available color and resolution metadata; refuses to overwrite unless `--overwrite` is passed. | Requires `.[jpeg]` for Pillow. |
 | `pyt_image_split.py` | `pyt-image-split` | Split one or more images into horizontal or vertical slices. | `pyt-image-split --vertical --count 2 "/path/to/image.webp"` | Writes numbered image slices next to each source image; preserves format and available color and resolution metadata; refuses to overwrite unless `--overwrite` is passed. | Requires `.[jpeg]` for Pillow. |
 | `pyt_pdf_extract_text.py` | `pyt-pdf-extract-text` | Extract PDF text with optional OCR fallback. | `pyt-pdf-extract-text --no-ocr "/path/to/file.pdf"` | Writes a `.txt` file and extraction log. | Requires `.[pdf]`; OCR also needs `.[ocr]` and Tesseract. |
 | `pyt_pdf_extract_selectable_text.py` | `pyt-pdf-extract-selectable-text` | Extract selectable PDF text with a lightweight parser. | `pyt-pdf-extract-selectable-text "/path/to/file.pdf"` | Writes a `.txt` file. | Requires `.[pdf]`. |

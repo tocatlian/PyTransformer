@@ -34,6 +34,27 @@ Dependencies:
 
 ## Image Commands
 
+### `pyt-image-to-webp`
+
+Converts one or more JPEG, PNG, or TIFF images to WebP.
+
+Use when:
+
+- JPEG, PNG, or TIFF source images should be prepared for web publishing.
+- You want the generated WebP files to stay beside the original images.
+- You want filenames such as `image.jpg` to become `image.webp`.
+
+Writes:
+
+- One WebP file next to each input image.
+- Existing output files are refused unless `--overwrite` is passed.
+- WebP output defaults to quality 98 and can be changed with `--quality` or `-q`.
+- Output preserves available ICC color profile and resolution metadata.
+
+Dependencies:
+
+- `.[jpeg]` for Pillow.
+
 ### `pyt-image-split`
 
 Splits one or more images into a fixed number of horizontal or vertical output images.

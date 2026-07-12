@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>pyt-image-split - PyTransformer</title>
+  <title>pyt-image-to-webp - PyTransformer</title>
   <link rel="stylesheet" href="../styles.css">
 </head>
 <body>
@@ -21,8 +21,8 @@
 <p class="nav-section-title">Command Pages</p>
 <ul class="nav-list">
 <li><a href="pyt-help.html">pyt-help</a></li>
-<li><a href="pyt-image-to-webp.html">pyt-image-to-webp</a></li>
-<li><a href="pyt-image-split.html" aria-current="page">pyt-image-split</a></li>
+<li><a href="pyt-image-to-webp.html" aria-current="page">pyt-image-to-webp</a></li>
+<li><a href="pyt-image-split.html">pyt-image-split</a></li>
 <li><a href="pyt-pdf-extract-text.html">pyt-pdf-extract-text</a></li>
 <li><a href="pyt-pdf-extract-selectable-text.html">pyt-pdf-extract-selectable-text</a></li>
 <li><a href="pyt-pdf-extract-selectable-text-batch.html">pyt-pdf-extract-selectable-text-batch</a></li>
@@ -39,14 +39,14 @@
 </ul></nav>
 <main class="site-main">
 <article class="content">
-<p class="source-note">Generated from docs/commands.md#pyt-image-split.</p>
+<p class="source-note">Generated from docs/commands.md#pyt-image-to-webp.</p>
 <p class="breadcrumb"><a href="../commands.html">Command Guide</a> / Image Commands</p>
-<h1 id="pyt-image-split"><code>pyt-image-split</code></h1>
-<p>Splits one or more images into a fixed number of horizontal or vertical output images.</p>
+<h1 id="pyt-image-to-webp"><code>pyt-image-to-webp</code></h1>
+<p>Converts one or more JPEG, PNG, or TIFF images to WebP.</p>
 <p>Use when:</p>
-<ul><li>A tall image should be cut into two or more horizontal strips.</li><li>A wide image should be cut into two or more vertical strips.</li><li>You want the generated files to stay beside the original image.</li><li>You want numbered suffixes such as <code>image-1.webp</code>, <code>image-2.webp</code>, and <code>image-3.webp</code>.</li></ul>
+<ul><li>JPEG, PNG, or TIFF source images should be prepared for web publishing.</li><li>You want the generated WebP files to stay beside the original images.</li><li>You want filenames such as <code>image.jpg</code> to become <code>image.webp</code>.</li></ul>
 <p>Writes:</p>
-<ul><li>Numbered JPEG, PNG, TIFF, or WebP slices next to each input image.</li><li>Existing output files are refused unless <code>--overwrite</code> is passed.</li><li>The slice count defaults to 2 and can be changed with <code>--count</code>.</li><li>Vertical strip splitting is the default; for example, a 6x4 image split in two creates two 3x4 images.</li><li>Pass <code>--horizontal</code> for horizontal strips; for example, a 4x6 image split in two creates two 4x3 images.</li><li>JPEG and WebP output default to quality 100.</li><li>JPEG output uses full chroma detail.</li><li>Output preserves the original image format and available ICC color profile and resolution metadata.</li></ul>
+<ul><li>One WebP file next to each input image.</li><li>Existing output files are refused unless <code>--overwrite</code> is passed.</li><li>WebP output defaults to quality 98 and can be changed with <code>--quality</code> or <code>-q</code>.</li><li>Output preserves available ICC color profile and resolution metadata.</li></ul>
 <p>Dependencies:</p>
 <ul><li><code>.[jpeg]</code> for Pillow.</li></ul>
 </article>
