@@ -1,8 +1,8 @@
 # PyTransformer
 
 [![CI](https://github.com/tocatlian/PyTransformer/actions/workflows/ci.yml/badge.svg)](https://github.com/tocatlian/PyTransformer/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/tocatlian/PyTransformer/blob/main/LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://github.com/tocatlian/PyTransformer/blob/main/pyproject.toml)
 
 PyTransformer is a Python package of command-line utilities for transforming PDFs, M4A and MP4 media, JPEG metadata, filenames, and plain-text files.
 
@@ -68,40 +68,17 @@ python3 -m pip install -e ".[all]"
 
 ## Validation
 
-After installing the development extra, run:
+After installing the development extra, run the CI-equivalent validation gate:
 
 ```bash
 make validate
-make lint
-make coverage
-make hooks
-make smoke
-make smoke-pdf
-make smoke-jpeg
-make smoke-m4a
-make clean
 ```
 
-`make validate` compiles the package and tests, runs Ruff lint and format checks, runs mypy, validates the pre-commit configuration, verifies generated HTML documentation, verifies module and installed-command help, runs the unit tests, checks coverage, builds source and wheel distributions in a temporary folder, and checks package metadata.
+`make validate` compiles the package and tests, checks formatting and types, verifies generated documentation and installed commands, runs the unit tests and repository-wide coverage gate, and checks package build metadata.
 
-`make coverage` runs the full unit suite under coverage.py and enforces a repository-wide minimum of 80% line coverage.
+The optional PDF, JPEG, and M4A smoke checks require their matching extras or system tools. See the [validation expectations](CONTRIBUTING.md#validation-expectations) for the complete local and release checklist.
 
-`make smoke` runs representative standard-library commands against temporary fixtures. It avoids optional PDF/JPEG/MP4/M4A dependencies.
-
-`make smoke-pdf` and `make smoke-jpeg` run generated-fixture checks for optional PDF and JPEG commands. Install the matching extras first with `python3 -m pip install -e ".[pdf]"` or `python3 -m pip install -e ".[jpeg]"`.
-
-`make smoke-m4a` generates two short M4A fixtures, converts them to MP3 with the batch-capable command, and verifies both outputs. It requires FFmpeg.
-
-`make hooks` runs the repository's pre-commit hooks across all files from inside a git checkout. It is useful before opening a pull request.
-
-For local CI-style isolation, install the development extra and run:
-
-```bash
-python3 -m tox
-python3 -m tox -e smoke-pdf,smoke-jpeg,smoke-m4a
-```
-
-The default tox environments run the Python version matrix when those interpreters are available, plus linting, type-checking, package build checks, and the standard-library smoke test. The optional PDF, JPEG, and M4A smoke environments are opt-in because they require optional runtime dependencies or system tools.
+For local CI-style isolation, use `python3 -m tox` after installing the development extra.
 
 ## Naming Standard
 
@@ -130,34 +107,22 @@ This gives engineers importable Python modules and gives command-line users idio
 
 ## Command Reference
 
-| Python module | Console command | Purpose | Example | Writes data? | Setup |
-| --- | --- | --- | --- | --- | --- |
-| `pyt_help.py` | `pyt-help` | List available PyTransformer commands. | `pyt-help --verbose` | Read-only. | Standard library only. |
-| `pyt_image_to_webp.py` | `pyt-image-to-webp` | Convert JPEG, PNG, or TIFF images to WebP. | `pyt-image-to-webp --quality 98 "/path/to/image.jpg"` | Writes `.webp` files next to each source image; preserves available color and resolution metadata; refuses to overwrite unless `--overwrite` is passed. | Requires `.[jpeg]` for Pillow. |
-| `pyt_image_split.py` | `pyt-image-split` | Split one or more images into horizontal or vertical slices. | `pyt-image-split --vertical --count 2 "/path/to/image.webp"` | Writes numbered image slices next to each source image; preserves format and available color and resolution metadata; refuses to overwrite unless `--overwrite` is passed. | Requires `.[jpeg]` for Pillow. |
-| `pyt_m4a_to_mp3.py` | `pyt-m4a-to-mp3` | Convert one or more M4A audio files to MP3. | `pyt-m4a-to-mp3 --bitrate 192k first.m4a second.m4a` | Writes one sibling `.mp3` file per input; preserves metadata and available cover art; refuses to overwrite unless `--overwrite` is passed. | Requires FFmpeg on PATH. |
-| `pyt_pdf_extract_text.py` | `pyt-pdf-extract-text` | Extract PDF text with optional OCR fallback. | `pyt-pdf-extract-text --no-ocr "/path/to/file.pdf"` | Writes a `.txt` file and extraction log. | Requires `.[pdf]`; OCR also needs `.[ocr]` and Tesseract. |
-| `pyt_pdf_extract_selectable_text.py` | `pyt-pdf-extract-selectable-text` | Extract selectable PDF text with a lightweight parser. | `pyt-pdf-extract-selectable-text "/path/to/file.pdf"` | Writes a `.txt` file. | Requires `.[pdf]`. |
-| `pyt_pdf_extract_selectable_text_batch.py` | `pyt-pdf-extract-selectable-text-batch` | Batch extract selectable text from PDFs in a folder. | `pyt-pdf-extract-selectable-text-batch --output-folder "/path/to/text" "/path/to/pdfs"` | Writes one `.txt` file per PDF. | Requires `.[pdf]`. |
-| `pyt_pdf_render_jpeg.py` | `pyt-pdf-render-jpeg` | Render PDF pages as JPEG images. | `pyt-pdf-render-jpeg --dpi 300 --output-folder "/path/to/pages" "/path/to/file.pdf"` | Writes JPEG files to an output folder. | Requires `.[pdf]`. |
-| `pyt_mp4_split_chunks.py` | `pyt-mp4-split-chunks` | Split one MP4 into fixed-length chunks. | `pyt-mp4-split-chunks --seconds 30 "/path/to/video.mp4"` | Writes chunked MP4 files to an output folder. | Requires `.[mp4]` and FFmpeg. |
-| `pyt_mp4_transcribe.py` | `pyt-mp4-transcribe` | Transcribe one MP4 to text. | `pyt-mp4-transcribe "/path/to/video.mp4"` | Writes a transcript `.txt` file. | Requires `.[mp4]`, FFmpeg, and network access. |
-| `pyt_mp4_transcribe_batch.py` | `pyt-mp4-transcribe-batch` | Batch transcribe MP4 files in a folder. | `pyt-mp4-transcribe-batch --output-folder "/path/to/transcripts" "/path/to/videos"` | Writes one transcript per MP4. | Requires `.[mp4]`, FFmpeg, and network access. |
-| `pyt_jpeg_show_metadata.py` | `pyt-jpeg-show-metadata` | Show embedded metadata for one JPEG. | `pyt-jpeg-show-metadata --full-values "/path/to/file.jpg"` | Read-only. | Requires `.[jpeg]`. |
-| `pyt_jpeg_strip_metadata.py` | `pyt-jpeg-strip-metadata` | Create cleaned JPEG copies without descriptive metadata. | `pyt-jpeg-strip-metadata --dry-run "/path/to/images"` | Writes cleaned copies to a separate folder by default. | Requires `.[jpeg]`. |
-| `pyt_image_variants_count.py` | `pyt-image-variants-count` | Count preset variants grouped by image base filename. | `pyt-image-variants-count --list-presets --include-hidden "/path/to/images"` | Read-only. | Standard library only. |
-| `pyt_image_collage_slice.py` | `pyt-image-collage-slice` | Create a sliced collage from two or more images. | `pyt-image-collage-slice --webp --output collage.webp 10 image-a.jpg image-b.png image-c.webp` | Writes one JPEG, PNG, TIFF, or WebP collage; preserves available color and resolution metadata; refuses to overwrite unless `--overwrite` is passed. | Requires `.[jpeg]` for Pillow. |
-| `pyt_files_append_folder_name.py` | `pyt-files-append-folder-name` | Append the containing folder name to filenames. | `pyt-files-append-folder-name --dry-run "/path/to/Tokyo"` | Renames files; requires confirmation unless `--yes` is passed. | Standard library only. |
-| `pyt_text_concatenate.py` | `pyt-text-concatenate` | Concatenate text files in a folder. | `pyt-text-concatenate --output "/path/to/combined.txt" "/path/to/text-files"` | Writes one combined text file. | Standard library only. |
+The [command guide](docs/commands.md) is the authoritative reference for arguments, examples, outputs, dependencies, and safety behavior.
 
-Detailed command notes are available in `docs/commands.md`.
+- [Discovery commands](docs/commands.md#discovery-command)
+- [Image commands](docs/commands.md#image-commands)
+- [PDF commands](docs/commands.md#pdf-commands)
+- [MP4 commands](docs/commands.md#mp4-commands)
+- [M4A audio commands](docs/commands.md#audio-commands)
+- [JPEG and metadata commands](docs/commands.md#jpeg-commands)
+- [File and text commands](docs/commands.md#file-and-text-commands)
 
 ## Documentation
 
-- `docs/commands.md`: command-by-command behavior and dependency notes.
-- `docs/privacy.md`: privacy risks for metadata, transcripts, logs, and generated files.
-- `docs/architecture.md`: package layout, command structure, and safety model.
-- `docs/lessons-learned.md`: reusable project practices, implementation recipes, testing considerations, and things to avoid repeating.
+- [Command guide](docs/commands.md): command-by-command behavior and dependency notes.
+- [Privacy guide](docs/privacy.md): privacy risks for metadata, transcripts, logs, and generated files.
+- [Architecture](docs/architecture.md): package layout, command structure, and documentation build.
+- [Lessons learned](docs/lessons-learned.md): rationale and project-specific lessons that supplement the normative contributor guidance.
 
 Static HTML documentation is generated from the markdown sources into `docs/html/`:
 
@@ -170,38 +135,29 @@ make docs-watch
 
 ## Safety Defaults
 
-- Commands validate input paths before doing work.
-- Batch commands do not recurse unless explicitly documented.
-- Symlinks are skipped by batch file operations.
-- Output files are not overwritten unless `--overwrite` is passed.
-- Destructive renaming requires an interactive confirmation or `--yes`.
-- Dry-run modes are available where a command performs bulk changes.
+Commands validate paths, avoid unexpected overwrites, skip symlinks in batch operations, and provide confirmation or dry-run controls for destructive work. See the [command guide](docs/commands.md) for command-specific behavior.
 
 ## Privacy Notes
 
-- MP4 transcription commands use Google Web Speech API through `SpeechRecognition`; do not use them on sensitive audio unless that service is acceptable for your use case.
-- JPEG metadata can include GPS coordinates, camera identifiers, timestamps, comments, and editing metadata. Use `pyt-jpeg-show-metadata` before publishing, and use `pyt-jpeg-strip-metadata` to create cleaned copies.
-- PDF and media outputs may contain extracted text, rendered pages, or audio-derived transcripts. Treat generated artifacts with the same care as the source files.
-
-See `docs/privacy.md` for more detail.
+MP4 transcription sends audio to Google Web Speech API, and JPEG, PDF, and media outputs may contain sensitive source data. Read the [privacy guide](docs/privacy.md) before processing or publishing private files.
 
 ## Contributing
 
-See `CONTRIBUTING.md` for project standards, validation expectations, and guidance for adding new commands. The `main` branch is protected: use a focused `codex/<description>` branch, open a pull request, wait for all required CI checks, and squash-merge instead of pushing directly to `main`.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for project standards, validation expectations, release preparation, and guidance for adding new commands. The `main` branch is protected: use a focused `codex/<description>` branch, open a pull request, wait for all required CI checks, and squash-merge instead of pushing directly to `main`.
 
-The project uses `CODE_OF_CONDUCT.md` for collaboration expectations and `SUPPORT.md` for issue-reporting guidance.
+The project uses the [Code of Conduct](CODE_OF_CONDUCT.md) for collaboration expectations and [SUPPORT.md](SUPPORT.md) for issue-reporting guidance.
 
 ## Security
 
-Please report security concerns privately. See `SECURITY.md`.
+Please report security concerns privately. See the [Security Policy](SECURITY.md).
 
 ## Changelog
 
-Release notes are tracked in `CHANGELOG.md`.
+Release notes are tracked in the [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 
-Distributed under the MIT License. See `LICENSE` for more information.
+Distributed under the [MIT License](https://github.com/tocatlian/PyTransformer/blob/main/LICENSE).
 
 ## Contact
 

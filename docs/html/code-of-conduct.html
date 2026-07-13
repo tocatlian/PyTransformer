@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Privacy - PyTransformer</title>
+  <title>Code of Conduct - PyTransformer</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -16,11 +16,11 @@
 <li><a href="commands.html">Commands</a></li>
 <li><a href="architecture.html">Architecture</a></li>
 <li><a href="lessons-learned.html">Lessons</a></li>
-<li><a href="privacy.html" aria-current="page">Privacy</a></li>
+<li><a href="privacy.html">Privacy</a></li>
 <li><a href="contributing.html">Contributing</a></li>
 <li><a href="security.html">Security</a></li>
 <li><a href="support.html">Support</a></li>
-<li><a href="code-of-conduct.html">Conduct</a></li>
+<li><a href="code-of-conduct.html" aria-current="page">Conduct</a></li>
 <li><a href="changelog.html">Changelog</a></li>
 </ul>
 <p class="nav-section-title">Command Pages</p>
@@ -45,23 +45,17 @@
 </ul></nav>
 <main class="site-main">
 <article class="content">
-<p class="source-note">Generated from docs/privacy.md.</p>
-<h1 id="privacy-guide">Privacy Guide</h1>
-<p>PyTransformer works with files that often contain sensitive information. Treat generated outputs with the same care as source files.</p>
-<h2 id="jpeg-metadata">JPEG Metadata</h2>
-<p>JPEG metadata may include:</p>
-<ul><li>GPS coordinates.</li><li>Camera make, model, and serial-like identifiers.</li><li>Capture timestamps.</li><li>Editing software details.</li><li>Captions, comments, and other descriptive fields.</li></ul>
-<p>Recommended workflow:</p>
-<ol><li>Inspect with <code>pyt-jpeg-show-metadata</code>.</li><li>Create cleaned copies with <code>pyt-jpeg-strip-metadata</code>.</li><li>Review the cleaned output before publishing.</li></ol>
-<h2 id="mp4-transcription">MP4 Transcription</h2>
-<p>MP4 transcription commands use Google Web Speech API through the <code>SpeechRecognition</code> package.</p>
-<p>Do not use transcription commands on sensitive audio unless sending audio to that service is acceptable for your use case.</p>
-<h2 id="pdf-and-text-outputs">PDF And Text Outputs</h2>
-<p>PDF commands may extract or render sensitive content into new files:</p>
-<ul><li>Extracted <code>.txt</code> files.</li><li>Extraction logs.</li><li>Rendered JPEG pages.</li></ul>
-<p>Text concatenation can combine separate files into a single artifact that may be easier to share accidentally.</p>
-<h2 id="working-with-untrusted-files">Working With Untrusted Files</h2>
-<p>Avoid running file-processing commands on untrusted files in privileged environments. Use a disposable folder or sandbox when evaluating unknown inputs.</p>
+<p class="source-note">Generated from CODE_OF_CONDUCT.md.</p>
+<h1 id="code-of-conduct">Code of Conduct</h1>
+<p>PyTransformer should be a useful, respectful place for engineers to collaborate.</p>
+<h2 id="standards">Standards</h2>
+<p>Expected behavior:</p>
+<ul><li>Be clear, constructive, and patient when discussing code or user workflows.</li><li>Keep feedback focused on behavior, correctness, maintainability, and documentation.</li><li>Respect privacy. Do not post files, metadata, transcripts, logs, or local paths that expose private information.</li><li>Assume good intent, and make room for people to ask basic questions.</li></ul>
+<p>Unacceptable behavior:</p>
+<ul><li>Harassment, personal attacks, or discriminatory language.</li><li>Publishing another person&#x27;s private information.</li><li>Repeatedly derailing technical discussions after maintainers ask to refocus.</li><li>Using issues, pull requests, or discussions to pressure maintainers for unrelated support.</li></ul>
+<h2 id="reporting">Reporting</h2>
+<p>Report conduct concerns privately to Paul Tocatlian through &lt;https://www.tocatlian.com&gt;.</p>
+<p>Maintainers may remove comments, close issues, restrict participation, or take other reasonable steps to keep the project professional and useful.</p>
 </article>
 </main>
 </div>

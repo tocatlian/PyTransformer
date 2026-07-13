@@ -2,6 +2,8 @@
 
 PyTransformer is a Python package with a focused command-line surface. Changes should preserve the package structure, keep command behavior safe by default, and remain easy for another engineer to validate.
 
+Use the [README](README.md) for the first-time-user path, the [command guide](docs/commands.md) for current command behavior, the [privacy guide](docs/privacy.md) for data handling, and the [architecture guide](docs/architecture.md) for implementation structure.
+
 ## GitHub Workflow
 
 The `main` branch is protected. For every change:
@@ -70,22 +72,16 @@ tests/      Standard-library unit tests.
 
 ## Validation Expectations
 
-Before sharing changes, run:
+Before sharing changes, install the development extra and run the CI-equivalent gate:
 
 ```bash
+python3 -m pip install -e ".[dev]"
 make validate
-make lint
-make format-check
-make type-check
-make coverage
-make hooks
-make smoke
-make smoke-pdf
-make smoke-jpeg
-make clean
 ```
 
-`make validate` also verifies installed console entry points and package build metadata, so run it from an environment where `python3 -m pip install -e ".[dev]"` has already completed.
+`make validate` covers compilation, linting, formatting, type checks, hook configuration, generated documentation and links, command help, installed entry points, unit tests, repository-wide coverage, and package metadata.
+
+Run `make smoke-pdf`, `make smoke-jpeg`, or `make smoke-m4a` when the change affects that optional domain. They require the matching extras or system tools; use generated fixtures rather than private files.
 
 To install local pre-commit hooks:
 
@@ -106,26 +102,9 @@ The optional smoke environments install the matching package extras and use gene
 
 ## Release Checklist
 
-Before uploading the repository publicly, tagging a release, or opening a release pull request, run:
+Start with the [validation expectations](#validation-expectations) and complete the optional smoke checks for the affected domains. Before tagging or publishing, confirm:
 
-```bash
-python3 -m pip install -e ".[dev]"
-make validate
-make coverage
-make hooks
-make smoke
-make smoke-pdf
-make smoke-jpeg
-make clean
-```
-
-`make validate` checks compilation, Ruff linting and formatting, mypy, pre-commit configuration, module-level `--help`, installed console entry points, unit tests, coverage, package build artifacts, and package metadata.
-
-Run `make hooks` from inside a git checkout. If optional dependencies and system tools are available, also test the affected PDF, JPEG, MP4, and OCR commands against small synthetic or sanitized fixtures.
-
-Before publishing, confirm:
-
-- `README.md`, `docs/commands.md`, `docs/privacy.md`, `docs/architecture.md`, `CHANGELOG.md`, `SECURITY.md`, and `SUPPORT.md` match the release.
+- The [README](README.md), [command guide](docs/commands.md), [privacy guide](docs/privacy.md), [architecture guide](docs/architecture.md), [CHANGELOG.md](CHANGELOG.md), [SECURITY.md](SECURITY.md), and [SUPPORT.md](SUPPORT.md) match the release.
 - `LICENSE` and source SPDX headers use the correct license and copyright range.
 - Every command module remains executable.
 - `.gitignore` covers generated media, logs, caches, and packaging artifacts.
@@ -138,7 +117,7 @@ Before publishing, confirm:
 2. Add a `main() -> int` entry point.
 3. Add the command to `[project.scripts]` in `pyproject.toml`.
 4. Add argparse options with safe defaults.
-5. Add a README row with module name, console command, purpose, example, write behavior, and dependencies.
-6. Update README and docs when behavior, privacy, dependencies, or command usage changes.
+5. Add the command's behavior, examples, outputs, dependencies, and privacy implications to the [command guide](docs/commands.md) and the relevant supporting docs.
+6. Update the README only when the user-facing overview or command category links need to change.
 7. Add tests for logic that can run without optional external services.
-8. Run `make validate`.
+8. Run `make docs`, then `make validate`.

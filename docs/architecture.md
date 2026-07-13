@@ -27,9 +27,7 @@ The command modules own:
 - Exit codes.
 - Command-specific orchestration.
 
-They should avoid doing substantial work at import time so `--help`, tests, and packaging checks keep working without optional runtime dependencies installed.
-
-Every command module uses the `pyt_domain_verb_object[_batch]` naming pattern, and the installed command is the same name with underscores changed to hyphens. For example, `pyt_pdf_extract_text.py` becomes `pyt-pdf-extract-text`. Every command module exposes `build_parser() -> argparse.ArgumentParser` and `main() -> int`. Help output includes an `Examples:` section with installed command invocations. Single-file commands use `-o`/`--output` for one generated file, commands that write directories use `-o`/`--output-folder`, and reduced logging uses `--quiet`. Batch folder commands skip hidden dotfiles by default and expose `--include-hidden` when hidden files can be included.
+They should avoid doing substantial work at import time so `--help`, tests, and packaging checks keep working without optional runtime dependencies installed. The [command guide](commands.md) is the source of truth for user-facing command behavior; [CONTRIBUTING.md](../CONTRIBUTING.md) owns contributor-facing naming, parser, and validation standards.
 
 ## Core Modules
 
@@ -56,7 +54,7 @@ Optional imports should be lazy or guarded so:
 
 Markdown files remain the documentation source of truth. `scripts/build_docs.py` converts `README.md` and project documentation into static HTML under `docs/html/`, and it splits the command sections in `docs/commands.md` into one generated page per console command.
 
-Use `make docs` for a one-time rebuild, `make docs-check` to verify generated HTML is current, and `make docs-watch` while editing markdown.
+Use `make docs` for a one-time rebuild, `make docs-check` to verify generated HTML and documentation links, and `make docs-watch` while editing markdown. The [README](../README.md) is the first-time-user entry point; [CONTRIBUTING.md](../CONTRIBUTING.md), [privacy.md](privacy.md), and this page cover project operations, data handling, and implementation structure.
 
 Keep the docs workflow single-source. If the generator changes, update the Makefile, CI, GitHub Pages workflow, project instructions, README guidance, and generated HTML together so future contributors are not left choosing between competing builders.
 
@@ -70,3 +68,5 @@ Commands should default to conservative file behavior:
 - Avoid overwriting outputs unless `--overwrite` is passed.
 - Require confirmation or `--dry-run` for bulk renaming.
 - Keep generated artifacts separate from source files when practical.
+
+The [command guide](commands.md) documents command-specific exceptions and output behavior. Contributor rules for introducing or changing these safeguards belong in [CONTRIBUTING.md](../CONTRIBUTING.md).

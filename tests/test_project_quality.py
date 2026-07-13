@@ -53,11 +53,17 @@ PUBLIC_REPOSITORY_FILES = [
     "docs/html/index.html",
     "docs/html/lessons-learned.html",
     "docs/html/privacy.html",
+    "docs/html/contributing.html",
+    "docs/html/security.html",
+    "docs/html/support.html",
+    "docs/html/code-of-conduct.html",
+    "docs/html/changelog.html",
     "docs/html/styles.css",
     "docs/privacy.md",
     "docs/lessons-learned.md",
     "pyproject.toml",
     "scripts/build_docs.py",
+    "scripts/check_docs_links.py",
     "tox.ini",
 ]
 
@@ -202,12 +208,10 @@ class ProjectQualityTests(unittest.TestCase):
                 help_text = module.build_parser().format_help()
                 self.assertNotIn("--silent", help_text)
 
-    def test_readme_mentions_every_command_module_and_console_command(self) -> None:
+    def test_readme_points_to_authoritative_command_guide(self) -> None:
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
-        for module_name, console_command in zip(COMMAND_MODULES, CONSOLE_COMMANDS, strict=True):
-            with self.subTest(module=module_name):
-                self.assertIn(f"{module_name}.py", readme)
-                self.assertIn(console_command, readme)
+        self.assertIn("[command guide](docs/commands.md)", readme)
+        self.assertIn("[M4A audio commands](docs/commands.md#audio-commands)", readme)
 
     def test_readme_includes_standard_library_quick_start(self) -> None:
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
@@ -221,6 +225,17 @@ class ProjectQualityTests(unittest.TestCase):
         for console_command in CONSOLE_COMMANDS:
             with self.subTest(command=console_command):
                 self.assertIn(console_command, command_docs)
+
+    def test_documentation_links_are_valid(self) -> None:
+        result = subprocess.run(
+            [sys.executable, "scripts/check_docs_links.py"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            timeout=15,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_html_docs_include_every_console_command_page(self) -> None:
         html_docs = ROOT / "docs" / "html"

@@ -17,6 +17,11 @@
 <li><a href="architecture.html" aria-current="page">Architecture</a></li>
 <li><a href="lessons-learned.html">Lessons</a></li>
 <li><a href="privacy.html">Privacy</a></li>
+<li><a href="contributing.html">Contributing</a></li>
+<li><a href="security.html">Security</a></li>
+<li><a href="support.html">Support</a></li>
+<li><a href="code-of-conduct.html">Conduct</a></li>
+<li><a href="changelog.html">Changelog</a></li>
 </ul>
 <p class="nav-section-title">Command Pages</p>
 <ul class="nav-list">
@@ -57,8 +62,7 @@
 <p>Each file in <code>pytransformer.cli</code> is importable as a normal Python module and executable as an installed console script.</p>
 <p>The command modules own:</p>
 <ul><li>Argument parsing.</li><li>User-facing summaries.</li><li>Exit codes.</li><li>Command-specific orchestration.</li></ul>
-<p>They should avoid doing substantial work at import time so <code>--help</code>, tests, and packaging checks keep working without optional runtime dependencies installed.</p>
-<p>Every command module uses the <code>pyt_domain_verb_object[_batch]</code> naming pattern, and the installed command is the same name with underscores changed to hyphens. For example, <code>pyt_pdf_extract_text.py</code> becomes <code>pyt-pdf-extract-text</code>. Every command module exposes <code>build_parser() -&gt; argparse.ArgumentParser</code> and <code>main() -&gt; int</code>. Help output includes an <code>Examples:</code> section with installed command invocations. Single-file commands use <code>-o</code>/<code>--output</code> for one generated file, commands that write directories use <code>-o</code>/<code>--output-folder</code>, and reduced logging uses <code>--quiet</code>. Batch folder commands skip hidden dotfiles by default and expose <code>--include-hidden</code> when hidden files can be included.</p>
+<p>They should avoid doing substantial work at import time so <code>--help</code>, tests, and packaging checks keep working without optional runtime dependencies installed. The <a href="commands.html">command guide</a> is the source of truth for user-facing command behavior; <a href="contributing.html">CONTRIBUTING.md</a> owns contributor-facing naming, parser, and validation standards.</p>
 <h2 id="core-modules">Core Modules</h2>
 <p>Shared helpers live in <code>pytransformer.core</code>.</p>
 <ul><li><code>common.py</code> handles path validation, output guards, deterministic directory ordering, logging, and confirmation prompts.</li><li><code>audio.py</code> handles MP4 audio extraction and speech recognition helpers.</li><li><code>jpeg_metadata.py</code> handles JPEG metadata inspection shared by the show and strip commands.</li></ul>
@@ -69,11 +73,12 @@
 <ul><li>Standard-library commands work after a base install.</li><li>Every command can display <code>--help</code>.</li><li>Missing optional packages produce direct installation guidance.</li><li><code>make type-check</code> can validate the package without installing every optional runtime dependency.</li></ul>
 <h2 id="documentation-build">Documentation Build</h2>
 <p>Markdown files remain the documentation source of truth. <code>scripts/build_docs.py</code> converts <code>README.md</code> and project documentation into static HTML under <code>docs/html/</code>, and it splits the command sections in <code>docs/commands.md</code> into one generated page per console command.</p>
-<p>Use <code>make docs</code> for a one-time rebuild, <code>make docs-check</code> to verify generated HTML is current, and <code>make docs-watch</code> while editing markdown.</p>
+<p>Use <code>make docs</code> for a one-time rebuild, <code>make docs-check</code> to verify generated HTML and documentation links, and <code>make docs-watch</code> while editing markdown. The <a href="index.html">README</a> is the first-time-user entry point; <a href="contributing.html">CONTRIBUTING.md</a>, <a href="privacy.html">privacy.md</a>, and this page cover project operations, data handling, and implementation structure.</p>
 <p>Keep the docs workflow single-source. If the generator changes, update the Makefile, CI, GitHub Pages workflow, project instructions, README guidance, and generated HTML together so future contributors are not left choosing between competing builders.</p>
 <h2 id="safety-model">Safety Model</h2>
 <p>Commands should default to conservative file behavior:</p>
 <ul><li>Validate input paths before processing.</li><li>Skip symlinks in batch operations.</li><li>Avoid recursion unless documented.</li><li>Avoid overwriting outputs unless <code>--overwrite</code> is passed.</li><li>Require confirmation or <code>--dry-run</code> for bulk renaming.</li><li>Keep generated artifacts separate from source files when practical.</li></ul>
+<p>The <a href="commands.html">command guide</a> documents command-specific exceptions and output behavior. Contributor rules for introducing or changing these safeguards belong in <a href="contributing.html">CONTRIBUTING.md</a>.</p>
 </article>
 </main>
 </div>

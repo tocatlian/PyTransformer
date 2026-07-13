@@ -117,6 +117,7 @@ docs:
 
 docs-check:
 	$(PYTHON) scripts/build_docs.py --check
+	$(PYTHON) scripts/check_docs_links.py
 
 docs-watch:
 	$(PYTHON) scripts/build_docs.py --watch
