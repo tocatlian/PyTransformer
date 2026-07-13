@@ -9,6 +9,7 @@ COMMAND_MODULES := \
 	pyt_jpeg_strip_metadata \
 	pyt_image_variants_count \
 	pyt_image_collage_slice \
+	pyt_m4a_to_mp3 \
 	pyt_mp4_split_chunks \
 	pyt_mp4_transcribe_batch \
 	pyt_mp4_transcribe \
@@ -26,6 +27,7 @@ CONSOLE_COMMANDS := \
 	pyt-jpeg-strip-metadata \
 	pyt-image-variants-count \
 	pyt-image-collage-slice \
+	pyt-m4a-to-mp3 \
 	pyt-mp4-split-chunks \
 	pyt-mp4-transcribe-batch \
 	pyt-mp4-transcribe \
@@ -35,7 +37,7 @@ CONSOLE_COMMANDS := \
 	pyt-pdf-extract-text \
 	pyt-text-concatenate
 
-.PHONY: help validate validate-all compile lint format-check type-check coverage hook-config-check hooks help-check entrypoint-check docs docs-check docs-watch test build-check tox smoke smoke-optional smoke-pdf smoke-jpeg clean
+.PHONY: help validate validate-all compile lint format-check type-check coverage hook-config-check hooks help-check entrypoint-check docs docs-check docs-watch test build-check tox smoke smoke-optional smoke-pdf smoke-jpeg smoke-m4a clean
 
 help:
 	@printf '%s\n' 'Available targets:'
@@ -57,9 +59,10 @@ help:
 	@printf '%s\n' '  make build-check Build sdist/wheel in a temp folder and verify metadata.'
 	@printf '%s\n' '  make tox         Run the configured tox environments.'
 	@printf '%s\n' '  make smoke       Run representative standard-library commands on temp fixtures.'
-	@printf '%s\n' '  make smoke-optional Run optional PDF and JPEG smoke checks.'
+	@printf '%s\n' '  make smoke-optional Run optional PDF, JPEG, and M4A smoke checks.'
 	@printf '%s\n' '  make smoke-pdf   Run PDF commands against a generated fixture; requires .[pdf].'
 	@printf '%s\n' '  make smoke-jpeg  Run JPEG commands against generated fixtures; requires .[jpeg].'
+	@printf '%s\n' '  make smoke-m4a   Run M4A-to-MP3 commands against generated fixtures; requires FFmpeg.'
 	@printf '%s\n' '  make clean       Remove local Python/cache/build artifacts.'
 
 validate: compile lint format-check type-check hook-config-check docs-check help-check entrypoint-check test coverage build-check
@@ -153,7 +156,17 @@ smoke:
 	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytransformer.cli.pyt_files_append_folder_name --dry-run "$$tmpdir/rename/Tokyo"; \
 	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytransformer.cli.pyt_files_append_folder_name --yes "$$tmpdir/rename/Tokyo"
 
-smoke-optional: smoke-pdf smoke-jpeg
+smoke-optional: smoke-pdf smoke-jpeg smoke-m4a
+
+smoke-m4a:
+	@tmpdir="$$(mktemp -d)"; \
+	trap 'rm -rf "$$tmpdir"' EXIT; \
+	mkdir -p "$$tmpdir/audio"; \
+	ffmpeg -hide_banner -loglevel error -y -f lavfi -i sine=frequency=1000:duration=0.2 -c:a aac "$$tmpdir/audio/first.m4a"; \
+	ffmpeg -hide_banner -loglevel error -y -f lavfi -i sine=frequency=1200:duration=0.2 -c:a aac "$$tmpdir/audio/second.m4a"; \
+	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytransformer.cli.pyt_m4a_to_mp3 --bitrate 192k "$$tmpdir/audio/first.m4a" "$$tmpdir/audio/second.m4a"; \
+	test -s "$$tmpdir/audio/first.mp3"; \
+	test -s "$$tmpdir/audio/second.mp3"
 
 smoke-pdf:
 	@tmpdir="$$(mktemp -d)"; \

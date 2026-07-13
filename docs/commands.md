@@ -200,6 +200,31 @@ Dependencies:
 - FFmpeg.
 - Network access.
 
+## Audio Commands
+
+### `pyt-m4a-to-mp3`
+
+Converts one or more M4A audio files to sibling MP3 files with FFmpeg.
+
+Use when:
+
+- An M4A recording needs to be shared or processed as an MP3.
+- Several M4A recordings should be converted in one command.
+- The converted file should remain beside the original source.
+
+Writes:
+
+- One `.mp3` file beside each input `.m4a`.
+- Existing MP3 files are refused unless `--overwrite` is passed.
+- The default LAME variable-bitrate quality is 2; use `--quality 0` through `--quality 9` to change it.
+- Use `--bitrate 192k` for constant-bitrate output instead of variable-bitrate quality.
+- Metadata and available embedded cover art are copied to the MP3 when FFmpeg supports the source format.
+- Each output is finalized through a temporary sibling file. A failed conversion does not replace an existing output or stop later inputs.
+
+Dependencies:
+
+- FFmpeg installed and available on `PATH`.
+
 ## JPEG Commands
 
 ### `pyt-jpeg-show-metadata`

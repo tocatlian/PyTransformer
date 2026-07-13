@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>pyt-image-split - PyTransformer</title>
+  <title>pyt-m4a-to-mp3 - PyTransformer</title>
   <link rel="stylesheet" href="../styles.css">
 </head>
 <body>
@@ -22,7 +22,7 @@
 <ul class="nav-list">
 <li><a href="pyt-help.html">pyt-help</a></li>
 <li><a href="pyt-image-to-webp.html">pyt-image-to-webp</a></li>
-<li><a href="pyt-image-split.html" aria-current="page">pyt-image-split</a></li>
+<li><a href="pyt-image-split.html">pyt-image-split</a></li>
 <li><a href="pyt-pdf-extract-text.html">pyt-pdf-extract-text</a></li>
 <li><a href="pyt-pdf-extract-selectable-text.html">pyt-pdf-extract-selectable-text</a></li>
 <li><a href="pyt-pdf-extract-selectable-text-batch.html">pyt-pdf-extract-selectable-text-batch</a></li>
@@ -30,7 +30,7 @@
 <li><a href="pyt-mp4-split-chunks.html">pyt-mp4-split-chunks</a></li>
 <li><a href="pyt-mp4-transcribe.html">pyt-mp4-transcribe</a></li>
 <li><a href="pyt-mp4-transcribe-batch.html">pyt-mp4-transcribe-batch</a></li>
-<li><a href="pyt-m4a-to-mp3.html">pyt-m4a-to-mp3</a></li>
+<li><a href="pyt-m4a-to-mp3.html" aria-current="page">pyt-m4a-to-mp3</a></li>
 <li><a href="pyt-jpeg-show-metadata.html">pyt-jpeg-show-metadata</a></li>
 <li><a href="pyt-jpeg-strip-metadata.html">pyt-jpeg-strip-metadata</a></li>
 <li><a href="pyt-image-variants-count.html">pyt-image-variants-count</a></li>
@@ -40,16 +40,16 @@
 </ul></nav>
 <main class="site-main">
 <article class="content">
-<p class="source-note">Generated from docs/commands.md#pyt-image-split.</p>
-<p class="breadcrumb"><a href="../commands.html">Command Guide</a> / Image Commands</p>
-<h1 id="pyt-image-split"><code>pyt-image-split</code></h1>
-<p>Splits one or more images into a fixed number of horizontal or vertical output images.</p>
+<p class="source-note">Generated from docs/commands.md#pyt-m4a-to-mp3.</p>
+<p class="breadcrumb"><a href="../commands.html">Command Guide</a> / Audio Commands</p>
+<h1 id="pyt-m4a-to-mp3"><code>pyt-m4a-to-mp3</code></h1>
+<p>Converts one or more M4A audio files to sibling MP3 files with FFmpeg.</p>
 <p>Use when:</p>
-<ul><li>A tall image should be cut into two or more horizontal strips.</li><li>A wide image should be cut into two or more vertical strips.</li><li>You want the generated files to stay beside the original image.</li><li>You want numbered suffixes such as <code>image-1.webp</code>, <code>image-2.webp</code>, and <code>image-3.webp</code>.</li></ul>
+<ul><li>An M4A recording needs to be shared or processed as an MP3.</li><li>Several M4A recordings should be converted in one command.</li><li>The converted file should remain beside the original source.</li></ul>
 <p>Writes:</p>
-<ul><li>Numbered JPEG, PNG, TIFF, or WebP slices next to each input image.</li><li>Existing output files are refused unless <code>--overwrite</code> is passed.</li><li>The slice count defaults to 2 and can be changed with <code>--count</code>.</li><li>Vertical strip splitting is the default; for example, a 6x4 image split in two creates two 3x4 images.</li><li>Pass <code>--horizontal</code> for horizontal strips; for example, a 4x6 image split in two creates two 4x3 images.</li><li>JPEG and WebP output default to quality 100.</li><li>JPEG output uses full chroma detail.</li><li>Output preserves the original image format and available ICC color profile and resolution metadata.</li></ul>
+<ul><li>One <code>.mp3</code> file beside each input <code>.m4a</code>.</li><li>Existing MP3 files are refused unless <code>--overwrite</code> is passed.</li><li>The default LAME variable-bitrate quality is 2; use <code>--quality 0</code> through <code>--quality 9</code> to change it.</li><li>Use <code>--bitrate 192k</code> for constant-bitrate output instead of variable-bitrate quality.</li><li>Metadata and available embedded cover art are copied to the MP3 when FFmpeg supports the source format.</li><li>Each output is finalized through a temporary sibling file. A failed conversion does not replace an existing output or stop later inputs.</li></ul>
 <p>Dependencies:</p>
-<ul><li><code>.[jpeg]</code> for Pillow.</li></ul>
+<ul><li>FFmpeg installed and available on <code>PATH</code>.</li></ul>
 </article>
 </main>
 </div>

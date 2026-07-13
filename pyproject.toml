@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pytransformer"
-description = "Command-line utilities for transforming PDFs, MP4 files, JPEG metadata, filenames, and text files."
+description = "Command-line utilities for transforming PDFs, M4A and MP4 media, JPEG metadata, filenames, and text files."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
@@ -19,6 +19,8 @@ maintainers = [
 keywords = [
     "pdf",
     "mp4",
+    "m4a",
+    "mp3",
     "jpeg",
     "metadata",
     "transcription",
@@ -93,6 +95,7 @@ pyt-image-variants-count = "pytransformer.cli.pyt_image_variants_count:main"
 pyt-image-collage-slice = "pytransformer.cli.pyt_image_collage_slice:main"
 pyt-image-split = "pytransformer.cli.pyt_image_split:main"
 pyt-image-to-webp = "pytransformer.cli.pyt_image_to_webp:main"
+pyt-m4a-to-mp3 = "pytransformer.cli.pyt_m4a_to_mp3:main"
 pyt-mp4-split-chunks = "pytransformer.cli.pyt_mp4_split_chunks:main"
 pyt-mp4-transcribe-batch = "pytransformer.cli.pyt_mp4_transcribe_batch:main"
 pyt-mp4-transcribe = "pytransformer.cli.pyt_mp4_transcribe:main"
@@ -132,7 +135,7 @@ select = [
 source = ["pytransformer"]
 
 [tool.coverage.report]
-fail_under = 42
+fail_under = 80
 show_missing = true
 skip_covered = true
 exclude_also = [
@@ -176,6 +179,7 @@ command_modules = [
     "pyt_image_collage_slice",
     "pyt_image_split",
     "pyt_image_to_webp",
+    "pyt_m4a_to_mp3",
     "pyt_mp4_split_chunks",
     "pyt_mp4_transcribe_batch",
     "pyt_mp4_transcribe",

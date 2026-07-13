@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
 
-PyTransformer is a Python package of command-line utilities for transforming PDFs, MP4 files, JPEG metadata, filenames, and plain-text files.
+PyTransformer is a Python package of command-line utilities for transforming PDFs, M4A and MP4 media, JPEG metadata, filenames, and plain-text files.
 
 The project follows a standard Python `src/` layout. Internal modules use lowercase `snake_case` names so they are importable, and installed terminal commands use short hyphenated `pyt-*` names.
 
@@ -61,6 +61,7 @@ python3 -m pip install -e ".[all]"
 - `.[pdf]` installs `pymupdf` and `pypdf` for PDF extraction and rendering commands.
 - `.[jpeg]` installs `pillow` and `defusedxml` for JPEG metadata commands.
 - `.[mp4]` installs `moviepy` and `SpeechRecognition`; MP4 commands also require FFmpeg, and transcription uses network access.
+- `pyt-m4a-to-mp3` uses a system FFmpeg installation to convert M4A audio to sibling MP3 files; it does not require an additional Python dependency group.
 - `.[ocr]` installs `pytesseract`; OCR fallback also requires a system Tesseract installation.
 - `.[all]` installs every optional runtime dependency group.
 - `.[dev]` installs build, coverage, type-checking, linting, pre-commit, tox, and package-checking tools.
@@ -77,16 +78,19 @@ make hooks
 make smoke
 make smoke-pdf
 make smoke-jpeg
+make smoke-m4a
 make clean
 ```
 
 `make validate` compiles the package and tests, runs Ruff lint and format checks, runs mypy, validates the pre-commit configuration, verifies generated HTML documentation, verifies module and installed-command help, runs the unit tests, checks coverage, builds source and wheel distributions in a temporary folder, and checks package metadata.
 
-`make coverage` runs the unit tests under coverage.py and enforces the current coverage floor.
+`make coverage` runs the full unit suite under coverage.py and enforces a repository-wide minimum of 80% line coverage.
 
-`make smoke` runs representative standard-library commands against temporary fixtures. It avoids optional PDF/JPEG/MP4 dependencies.
+`make smoke` runs representative standard-library commands against temporary fixtures. It avoids optional PDF/JPEG/MP4/M4A dependencies.
 
 `make smoke-pdf` and `make smoke-jpeg` run generated-fixture checks for optional PDF and JPEG commands. Install the matching extras first with `python3 -m pip install -e ".[pdf]"` or `python3 -m pip install -e ".[jpeg]"`.
+
+`make smoke-m4a` generates two short M4A fixtures, converts them to MP3 with the batch-capable command, and verifies both outputs. It requires FFmpeg.
 
 `make hooks` runs the repository's pre-commit hooks across all files from inside a git checkout. It is useful before opening a pull request.
 
@@ -94,10 +98,10 @@ For local CI-style isolation, install the development extra and run:
 
 ```bash
 python3 -m tox
-python3 -m tox -e smoke-pdf,smoke-jpeg
+python3 -m tox -e smoke-pdf,smoke-jpeg,smoke-m4a
 ```
 
-The default tox environments run the Python version matrix when those interpreters are available, plus linting, type-checking, package build checks, and the standard-library smoke test. The optional PDF and JPEG smoke environments are opt-in because they install optional runtime dependencies.
+The default tox environments run the Python version matrix when those interpreters are available, plus linting, type-checking, package build checks, and the standard-library smoke test. The optional PDF, JPEG, and M4A smoke environments are opt-in because they require optional runtime dependencies or system tools.
 
 ## Naming Standard
 
@@ -131,6 +135,7 @@ This gives engineers importable Python modules and gives command-line users idio
 | `pyt_help.py` | `pyt-help` | List available PyTransformer commands. | `pyt-help --verbose` | Read-only. | Standard library only. |
 | `pyt_image_to_webp.py` | `pyt-image-to-webp` | Convert JPEG, PNG, or TIFF images to WebP. | `pyt-image-to-webp --quality 98 "/path/to/image.jpg"` | Writes `.webp` files next to each source image; preserves available color and resolution metadata; refuses to overwrite unless `--overwrite` is passed. | Requires `.[jpeg]` for Pillow. |
 | `pyt_image_split.py` | `pyt-image-split` | Split one or more images into horizontal or vertical slices. | `pyt-image-split --vertical --count 2 "/path/to/image.webp"` | Writes numbered image slices next to each source image; preserves format and available color and resolution metadata; refuses to overwrite unless `--overwrite` is passed. | Requires `.[jpeg]` for Pillow. |
+| `pyt_m4a_to_mp3.py` | `pyt-m4a-to-mp3` | Convert one or more M4A audio files to MP3. | `pyt-m4a-to-mp3 --bitrate 192k first.m4a second.m4a` | Writes one sibling `.mp3` file per input; preserves metadata and available cover art; refuses to overwrite unless `--overwrite` is passed. | Requires FFmpeg on PATH. |
 | `pyt_pdf_extract_text.py` | `pyt-pdf-extract-text` | Extract PDF text with optional OCR fallback. | `pyt-pdf-extract-text --no-ocr "/path/to/file.pdf"` | Writes a `.txt` file and extraction log. | Requires `.[pdf]`; OCR also needs `.[ocr]` and Tesseract. |
 | `pyt_pdf_extract_selectable_text.py` | `pyt-pdf-extract-selectable-text` | Extract selectable PDF text with a lightweight parser. | `pyt-pdf-extract-selectable-text "/path/to/file.pdf"` | Writes a `.txt` file. | Requires `.[pdf]`. |
 | `pyt_pdf_extract_selectable_text_batch.py` | `pyt-pdf-extract-selectable-text-batch` | Batch extract selectable text from PDFs in a folder. | `pyt-pdf-extract-selectable-text-batch --output-folder "/path/to/text" "/path/to/pdfs"` | Writes one `.txt` file per PDF. | Requires `.[pdf]`. |

@@ -77,7 +77,7 @@ class ProjectQualityTests(unittest.TestCase):
 
     def test_command_modules_are_importable_python_modules(self) -> None:
         self.assertTrue(COMMAND_MODULES, "No command modules were discovered.")
-        allowed_domains = {"files", "help", "image", "jpeg", "mp4", "pdf", "text"}
+        allowed_domains = {"files", "help", "image", "jpeg", "m4a", "mp4", "pdf", "text"}
         retired_module_names = {
             "files_append_folder_name",
             "jpeg_metadata_show",
@@ -257,6 +257,7 @@ class ProjectQualityTests(unittest.TestCase):
             "twine>=5.1",
             "tox>=4.19",
             "[tool.coverage.run]",
+            "fail_under = 80",
             "[tool.mypy]",
         ]
         for fragment in expected_fragments:
@@ -282,6 +283,7 @@ class ProjectQualityTests(unittest.TestCase):
             "smoke-optional",
             "smoke-pdf",
             "smoke-jpeg",
+            "smoke-m4a",
             "validate-all",
         ]:
             with self.subTest(target=target):
