@@ -187,7 +187,7 @@ See `docs/privacy.md` for more detail.
 
 ## Contributing
 
-See `CONTRIBUTING.md` for project standards, validation expectations, and guidance for adding new commands.
+See `CONTRIBUTING.md` for project standards, validation expectations, and guidance for adding new commands. The `main` branch is protected: use a focused `codex/<description>` branch, open a pull request, wait for all required CI checks, and squash-merge instead of pushing directly to `main`.
 
 The project uses `CODE_OF_CONDUCT.md` for collaboration expectations and `SUPPORT.md` for issue-reporting guidance.
 
