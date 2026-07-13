@@ -119,7 +119,7 @@ make docs-watch</code></pre>
 <ul><li>MP4 transcription commands use Google Web Speech API through <code>SpeechRecognition</code>; do not use them on sensitive audio unless that service is acceptable for your use case.</li><li>JPEG metadata can include GPS coordinates, camera identifiers, timestamps, comments, and editing metadata. Use <code>pyt-jpeg-show-metadata</code> before publishing, and use <code>pyt-jpeg-strip-metadata</code> to create cleaned copies.</li><li>PDF and media outputs may contain extracted text, rendered pages, or audio-derived transcripts. Treat generated artifacts with the same care as the source files.</li></ul>
 <p>See <code>docs/privacy.md</code> for more detail.</p>
 <h2 id="contributing">Contributing</h2>
-<p>See <code>CONTRIBUTING.md</code> for project standards, validation expectations, and guidance for adding new commands.</p>
+<p>See <code>CONTRIBUTING.md</code> for project standards, validation expectations, and guidance for adding new commands. The <code>main</code> branch is protected: use a focused <code>codex/&lt;description&gt;</code> branch, open a pull request, wait for all required CI checks, and squash-merge instead of pushing directly to <code>main</code>.</p>
 <p>The project uses <code>CODE_OF_CONDUCT.md</code> for collaboration expectations and <code>SUPPORT.md</code> for issue-reporting guidance.</p>
 <h2 id="security">Security</h2>
 <p>Please report security concerns privately. See <code>SECURITY.md</code>.</p>

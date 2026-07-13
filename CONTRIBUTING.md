@@ -2,6 +2,18 @@
 
 PyTransformer is a Python package with a focused command-line surface. Changes should preserve the package structure, keep command behavior safe by default, and remain easy for another engineer to validate.
 
+## GitHub Workflow
+
+The `main` branch is protected. For every change:
+
+1. Create a focused `codex/<description>` branch from `main`.
+2. Commit only the intended source, test, and documentation changes.
+3. Push the branch and open a pull request targeting `main`.
+4. Wait for all required Python CI checks to pass.
+5. Squash-merge the pull request. Merged branches are deleted automatically.
+
+Do not push directly to `main`. Keep generated files, local fixtures, and unrelated working-tree changes out of pull requests.
+
 ## Development Setup
 
 Use Python 3.10 or newer.
