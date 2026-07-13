@@ -49,6 +49,11 @@ MARKDOWN_PAGES = [
     MarkdownPage(DOCS_DIR / "architecture.md", "architecture.html", "Architecture", "Architecture"),
     MarkdownPage(DOCS_DIR / "lessons-learned.md", "lessons-learned.html", "Lessons Learned", "Lessons"),
     MarkdownPage(DOCS_DIR / "privacy.md", "privacy.html", "Privacy", "Privacy"),
+    MarkdownPage(ROOT / "CONTRIBUTING.md", "contributing.html", "Contributing", "Contributing"),
+    MarkdownPage(ROOT / "SECURITY.md", "security.html", "Security", "Security"),
+    MarkdownPage(ROOT / "SUPPORT.md", "support.html", "Support", "Support"),
+    MarkdownPage(ROOT / "CODE_OF_CONDUCT.md", "code-of-conduct.html", "Code of Conduct", "Conduct"),
+    MarkdownPage(ROOT / "CHANGELOG.md", "changelog.html", "Changelog", "Changelog"),
 ]
 
 CSS = """

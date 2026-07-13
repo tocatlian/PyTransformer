@@ -1,98 +1,61 @@
 # Lessons Learned
 
-Use this page before audits, release preparation, command additions, or documentation updates. It captures the project practices that have proven useful so future work can build on the existing shape instead of rediscovering it.
+Use this page for rationale, discoveries, and project-specific reminders. It supplements the current requirements in the [README](../README.md), [command guide](commands.md), [privacy guide](privacy.md), [architecture guide](architecture.md), and [CONTRIBUTING.md](../CONTRIBUTING.md); it is not a second source of current command or contributor rules.
+
+## Documentation Map
+
+- First-time users: [README](../README.md)
+- Command behavior: [command guide](commands.md)
+- Privacy and data handling: [privacy guide](privacy.md)
+- Implementation structure: [architecture guide](architecture.md)
+- Development and release requirements: [CONTRIBUTING.md](../CONTRIBUTING.md)
+- Security reporting: [SECURITY.md](../SECURITY.md)
+
+Markdown is the source of truth. Generated pages under `docs/html/` are built from these sources and should not be edited directly.
 
 ## Operating Principles
 
 - Keep PyTransformer small, predictable, and command-line first.
 - Preserve the base install with no runtime dependencies; add optional extras only for domains that need them.
-- Keep command modules thin. Argument parsing, summaries, and exit codes belong in `pytransformer.cli`; reusable behavior belongs in `pytransformer.core`.
-- Treat documentation as part of the product surface. Command behavior, dependency requirements, privacy implications, and validation steps should be reflected in Markdown.
+- Keep command modules thin and place reusable behavior in `pytransformer.core`.
 - Prefer conservative file behavior over convenience when a command writes, renames, extracts, renders, or transcribes user data.
 
-## Command Design
+These principles explain why the project separates command orchestration, shared helpers, optional dependencies, and privacy guidance across the documents above.
 
-- Use importable Python module names such as `pyt_pdf_extract_text.py` and expose installed hyphenated commands such as `pyt-pdf-extract-text`.
-- Every command module should expose `build_parser() -> argparse.ArgumentParser` and `main() -> int`.
-- Every help screen should include an `Examples:` section that uses installed command names rather than module invocations.
-- Use `-o`/`--output` for one output file, `-o`/`--output-folder` for folder output, `--overwrite` for clobbering, `--quiet` for reduced logging, and `--include-hidden` when hidden dotfiles can be included.
-- Batch commands should process a flat folder by default, skip symlinks, skip hidden dotfiles unless requested, and sort entries deterministically.
-- Optional dependency imports should be lazy or guarded so standard-library commands, help output, type checking, and package metadata validation continue to work from a base install.
+## Why The Command Conventions Exist
 
-## Documentation Practices
+Hyphenated installed commands, importable underscore-named modules, standard help output, explicit output options, deterministic batch behavior, and guarded writes make the tools easier to discover, automate, and review. The current conventions and exceptions belong in the [command guide](commands.md) and [contributor standards](../CONTRIBUTING.md).
 
-- Markdown is the source of truth. Generated HTML under `docs/html/` should not be hand-edited.
-- Use `make docs` after Markdown changes and `make docs-check` before committing documentation work.
-- Use `make docs-watch` during longer writing sessions when repeated rebuilds are useful.
-- Keep one canonical docs generator. If the docs workflow changes, update the Makefile targets, `scripts/build_docs.py`, CI, GitHub Pages, README instructions, project instructions, and generated HTML in the same change.
-- Keep `README.md` useful for first-time users, `docs/commands.md` useful for command-by-command behavior, `docs/privacy.md` useful for data-risk review, and `docs/architecture.md` useful for implementation decisions.
-- Command pages under `docs/html/commands/` are generated from `### \`pyt-...\`` sections in `docs/commands.md`; keep those headings stable.
+## Why The Documentation Workflow Exists
+
+Keeping one Markdown source for each topic prevents README, command, privacy, architecture, and generated HTML content from drifting apart. Run `make docs` after Markdown changes and `make docs-check` before committing; the latter verifies both generated output and local links.
 
 ## Testing Considerations
 
-- `make validate` is the broad pre-commit check. It covers compilation, linting, formatting, type checks, pre-commit config validation, generated docs, command help, installed entry points, unit tests, coverage, and package build metadata.
-- Keep standard-library tests strong because they run without optional PDF, JPEG, MP4, OCR, or network dependencies.
-- Add tests around shared helpers when behavior is reused across commands; this prevents command behavior from drifting.
-- Help and entry point checks protect discoverability. Run them after adding, renaming, or removing a command.
-- Optional-domain smoke tests should use small generated fixtures instead of private user files.
-- MP4 transcription depends on FFmpeg and network speech recognition, so keep network-dependent behavior documented and avoid making it mandatory for normal validation.
-- For write-heavy commands, test non-overwrite behavior, output path separation, missing input errors, and empty-folder behavior.
-
-## Implementation Patterns
-
-New command recipe:
-
-1. Add `src/pytransformer/cli/pyt_<domain>_<verb>_<object>.py`.
-2. Include the standard module header fields used by existing commands.
-3. Expose `build_parser()` and `main()`.
-4. Reuse helpers from `pytransformer.core.common` for parsers, paths, logging, confirmation, deterministic folder ordering, and user-facing errors.
-5. Add a `[project.scripts]` entry in `pyproject.toml`.
-6. Update `README.md`, `docs/commands.md`, and `docs/privacy.md` when behavior, dependencies, or data exposure changes.
-7. Add tests that run without optional external services where possible.
-8. Run `make docs`, then run the relevant validation target.
-
-Optional dependency recipe:
-
-1. Put the dependency in the smallest matching optional extra in `pyproject.toml`.
-2. Guard imports or load them lazily.
-3. Return a direct installation hint when the package is missing.
-4. Add missing-import configuration for type checking when needed.
-5. Keep `--help` and unrelated commands working without the extra installed.
-
-Safe file-output recipe:
-
-1. Resolve and validate input paths before processing.
-2. Refuse to write over an existing file unless `--overwrite` is passed.
-3. Refuse to use the same path for input and output.
-4. Create output folders only after validation succeeds.
-5. Keep generated artifacts separate from source files when practical.
-6. Summarize written, skipped, planned, and failed items at the end of batch work.
+The repository-wide `make validate` gate protects package structure, command discoverability, generated docs, links, and the 80% coverage requirement. Shared helpers deserve focused tests because a small change there can affect several commands. Optional-domain smoke checks should use generated fixtures and only be required when the affected dependency or system tool is available; see [validation expectations](../CONTRIBUTING.md#validation-expectations).
 
 ## Technical Discoveries
 
-- Console commands can use shell-friendly hyphenated names while their Python modules stay importable with underscores.
-- PyMuPDF is imported as `fitz`, so missing dependency messages should name the user-facing package and the install extra clearly.
+- Console commands can use shell-friendly hyphenated names while their Python modules remain importable with underscores.
+- PyMuPDF is imported as `fitz`, so missing dependency messages should name the user-facing package and install extra clearly.
 - JPEG metadata can come from EXIF, GPS EXIF, XMP, IPTC, ICC profiles, comments, and Pillow `info` fields; raw binary metadata should be summarized rather than printed directly.
-- `defusedxml` lets Pillow parse XMP more safely, but JPEG commands should still behave predictably when it is absent.
 - Preserving JPEG visual orientation, color profile, quantization tables, and subsampling is separate from preserving private descriptive metadata.
-- SpeechRecognition's Google Web Speech API uses network access. Documentation and privacy notes must make that clear.
-- Generated HTML can drift silently if Markdown changes are committed without running the docs build; keep `make docs-check` in validation.
+- SpeechRecognition's Google Web Speech API uses network access; this is a privacy decision, not just an implementation detail.
+- File-provider and iCloud-backed folders may require staged output finalization so Finder and the provider see the completed file reliably.
 
 ## Avoid Repeating
 
-- Do not add a second documentation generator unless the old workflow is removed or wrapped in the same change.
-- Do not hand-edit files under `docs/html/` to fix documentation content.
-- Do not import optional runtime dependencies at module import time when a lazy import keeps the base package usable.
+- Do not add a second documentation generator or hand-edit `docs/html/`.
+- Do not import optional runtime dependencies at module import time when a guarded or lazy import keeps the base package usable.
 - Do not use private PDFs, videos, transcripts, logs, local paths, or JPEG metadata in tests or examples.
 - Do not broaden recursion, symlink following, overwrite behavior, or hidden-file inclusion without documenting and testing the safety impact.
-- Do not put shared validation, ordering, or output rules in one CLI module when another command already needs the same behavior.
+- Do not copy current command standards into this page; update the authoritative document and link to it instead.
 
 ## Quick Audit Checklist
 
-- Command naming, parser shape, examples, and entry point are consistent.
-- Optional dependencies are isolated to the right extra and have clear missing-package messages.
-- Write behavior is guarded by validation, `--overwrite`, `--dry-run`, or confirmation as appropriate.
-- Batch behavior is deterministic and avoids hidden files, symlinks, and recursion unless documented.
-- README, command docs, privacy docs, architecture docs, and generated HTML are current.
+- README points users to the authoritative guide for each topic.
+- Every command is represented in `docs/commands.md` and has generated HTML output.
+- Privacy-sensitive behavior is documented in `docs/privacy.md`.
+- Implementation rules are documented in `docs/architecture.md` or `CONTRIBUTING.md`, not repeated here.
+- `make docs-check` passes after Markdown changes.
 - Tests cover reusable logic and the highest-risk file behavior.
-- Validation has been run at the level appropriate to the change.

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Changelog - PyTransformer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="site-shell">
+<nav class="site-nav" aria-label="Documentation navigation"><a class="brand" href="index.html">PyTransformer</a>
+<p class="tagline">HTML docs generated from markdown.</p>
+<p class="nav-section-title">Docs</p>
+<ul class="nav-list">
+<li><a href="index.html">Home</a></li>
+<li><a href="commands.html">Commands</a></li>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="lessons-learned.html">Lessons</a></li>
+<li><a href="privacy.html">Privacy</a></li>
+<li><a href="contributing.html">Contributing</a></li>
+<li><a href="security.html">Security</a></li>
+<li><a href="support.html">Support</a></li>
+<li><a href="code-of-conduct.html">Conduct</a></li>
+<li><a href="changelog.html" aria-current="page">Changelog</a></li>
+</ul>
+<p class="nav-section-title">Command Pages</p>
+<ul class="nav-list">
+<li><a href="commands/pyt-help.html">pyt-help</a></li>
+<li><a href="commands/pyt-image-to-webp.html">pyt-image-to-webp</a></li>
+<li><a href="commands/pyt-image-split.html">pyt-image-split</a></li>
+<li><a href="commands/pyt-pdf-extract-text.html">pyt-pdf-extract-text</a></li>
+<li><a href="commands/pyt-pdf-extract-selectable-text.html">pyt-pdf-extract-selectable-text</a></li>
+<li><a href="commands/pyt-pdf-extract-selectable-text-batch.html">pyt-pdf-extract-selectable-text-batch</a></li>
+<li><a href="commands/pyt-pdf-render-jpeg.html">pyt-pdf-render-jpeg</a></li>
+<li><a href="commands/pyt-mp4-split-chunks.html">pyt-mp4-split-chunks</a></li>
+<li><a href="commands/pyt-mp4-transcribe.html">pyt-mp4-transcribe</a></li>
+<li><a href="commands/pyt-mp4-transcribe-batch.html">pyt-mp4-transcribe-batch</a></li>
+<li><a href="commands/pyt-m4a-to-mp3.html">pyt-m4a-to-mp3</a></li>
+<li><a href="commands/pyt-jpeg-show-metadata.html">pyt-jpeg-show-metadata</a></li>
+<li><a href="commands/pyt-jpeg-strip-metadata.html">pyt-jpeg-strip-metadata</a></li>
+<li><a href="commands/pyt-image-variants-count.html">pyt-image-variants-count</a></li>
+<li><a href="commands/pyt-image-collage-slice.html">pyt-image-collage-slice</a></li>
+<li><a href="commands/pyt-files-append-folder-name.html">pyt-files-append-folder-name</a></li>
+<li><a href="commands/pyt-text-concatenate.html">pyt-text-concatenate</a></li>
+</ul></nav>
+<main class="site-main">
+<article class="content">
+<p class="source-note">Generated from CHANGELOG.md.</p>
+<h1 id="changelog">Changelog</h1>
+<p>All notable changes to PyTransformer will be documented in this file.</p>
+<p>This project follows the spirit of <a href="https://keepachangelog.com/en/1.1.0/">Keep a Changelog</a> and uses semantic versioning for public releases.</p>
+<h2 id="unreleased">[Unreleased]</h2>
+<h3 id="added">Added</h3>
+<ul><li>Added tox environments for local CI-style checks.</li><li>Added optional PDF and JPEG smoke targets with generated fixtures.</li></ul>
+<h3 id="fixed">Fixed</h3>
+<ul><li>Removed copied Pillow image info when writing stripped JPEGs so JPEG comments are not preserved in cleaned output.</li></ul>
+<h2 id="1-0-0-2026-06-26">[1.0.0] - 2026-06-26</h2>
+<h3 id="added">Added</h3>
+<ul><li>Added <code>pyt-help</code> to list available PyTransformer console commands.</li></ul>
+<h3 id="changed">Changed</h3>
+<ul><li>Standardized command modules around <code>build_parser()</code>, <code>--quiet</code>, <code>-o</code>/<code>--output-folder</code> for folder outputs, and <code>--include-hidden</code> for batch folder commands.</li><li>Added consistent <code>Examples:</code> sections to every command&#x27;s <code>-h</code>/<code>--help</code> output.</li><li>Renamed command modules and console commands to the short <code>pyt_domain_verb_object[_batch]</code> / <code>pyt-domain-verb-object[-batch]</code> convention.</li></ul>
+<h2 id="0-1-0-2026-06-17">[0.1.0] - 2026-06-17</h2>
+<h3 id="added">Added</h3>
+<ul><li>Standard <code>src/pytransformer</code> package layout.</li><li>Console entry points for all PyTransformer commands.</li><li>PDF, JPEG, MP4, filename, and text command modules.</li><li>Optional dependency groups for PDF, JPEG, MP4, OCR, all, and development workflows.</li><li>Makefile targets for validation, smoke testing, linting, and cleanup.</li><li>Git attributes configuration for line-ending normalization and binary media handling.</li><li>GitHub Actions CI workflow.</li><li>Public documentation for commands, privacy, architecture, security, and contribution standards.</li><li>Support, code of conduct, and release checklist guidance.</li><li>Dependabot configuration for public repository maintenance.</li><li>PEP 561 <code>py.typed</code> marker for typed consumers.</li><li>Mypy configuration and validation target for static type checking.</li><li>Coverage.py configuration and validation target with an enforced coverage floor.</li><li>Pre-commit configuration for local formatting, linting, metadata, and type-checking hooks.</li></ul>
+<h3 id="changed">Changed</h3>
+<ul><li>Reworked the original flat script collection into an installable Python package.</li><li>Standardized Python module names with lowercase <code>snake_case</code>.</li><li>Standardized command-line names with the <code>pytransformer-</code> prefix and hyphenated command names.</li><li>Hardened scripts with safer path validation, overwrite guards, deterministic directory ordering, and clearer exit behavior.</li><li>Centralized JPEG metadata inspection in <code>pytransformer.core.jpeg_metadata</code>.</li><li>Expanded validation to check formatting, installed entry points, package builds, metadata, public repo files, and executable script bits.</li><li>Tightened optional dependency shims so static type checks can run without installing every media/PDF dependency.</li><li>Replaced the JPEG variant counter&#x27;s dictionary-shaped analysis result with a typed dataclass.</li><li>Expanded standard-library behavior tests for validation guards, dry runs, duplicate detection, and text handling.</li><li>Removed redundant <code>requirements-*.txt</code> files so <code>pyproject.toml</code> is the single dependency source of truth.</li><li>Simplified packaging by removing the package manifest and folding dependency and release guidance into the README and contributing guide.</li></ul>
+<h3 id="security">Security</h3>
+<ul><li>Added explicit privacy notes for metadata, transcripts, rendered PDFs, and external speech recognition.</li><li>Added <code>SECURITY.md</code> with vulnerability reporting guidance.</li></ul>
+</article>
+</main>
+</div>
+</body>
+</html>

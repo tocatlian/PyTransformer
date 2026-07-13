@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Privacy - PyTransformer</title>
+  <title>Security - PyTransformer</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -16,9 +16,9 @@
 <li><a href="commands.html">Commands</a></li>
 <li><a href="architecture.html">Architecture</a></li>
 <li><a href="lessons-learned.html">Lessons</a></li>
-<li><a href="privacy.html" aria-current="page">Privacy</a></li>
+<li><a href="privacy.html">Privacy</a></li>
 <li><a href="contributing.html">Contributing</a></li>
-<li><a href="security.html">Security</a></li>
+<li><a href="security.html" aria-current="page">Security</a></li>
 <li><a href="support.html">Support</a></li>
 <li><a href="code-of-conduct.html">Conduct</a></li>
 <li><a href="changelog.html">Changelog</a></li>
@@ -45,23 +45,23 @@
 </ul></nav>
 <main class="site-main">
 <article class="content">
-<p class="source-note">Generated from docs/privacy.md.</p>
-<h1 id="privacy-guide">Privacy Guide</h1>
-<p>PyTransformer works with files that often contain sensitive information. Treat generated outputs with the same care as source files.</p>
-<h2 id="jpeg-metadata">JPEG Metadata</h2>
-<p>JPEG metadata may include:</p>
-<ul><li>GPS coordinates.</li><li>Camera make, model, and serial-like identifiers.</li><li>Capture timestamps.</li><li>Editing software details.</li><li>Captions, comments, and other descriptive fields.</li></ul>
-<p>Recommended workflow:</p>
-<ol><li>Inspect with <code>pyt-jpeg-show-metadata</code>.</li><li>Create cleaned copies with <code>pyt-jpeg-strip-metadata</code>.</li><li>Review the cleaned output before publishing.</li></ol>
-<h2 id="mp4-transcription">MP4 Transcription</h2>
-<p>MP4 transcription commands use Google Web Speech API through the <code>SpeechRecognition</code> package.</p>
-<p>Do not use transcription commands on sensitive audio unless sending audio to that service is acceptable for your use case.</p>
-<h2 id="pdf-and-text-outputs">PDF And Text Outputs</h2>
-<p>PDF commands may extract or render sensitive content into new files:</p>
-<ul><li>Extracted <code>.txt</code> files.</li><li>Extraction logs.</li><li>Rendered JPEG pages.</li></ul>
-<p>Text concatenation can combine separate files into a single artifact that may be easier to share accidentally.</p>
-<h2 id="working-with-untrusted-files">Working With Untrusted Files</h2>
-<p>Avoid running file-processing commands on untrusted files in privileged environments. Use a disposable folder or sandbox when evaluating unknown inputs.</p>
+<p class="source-note">Generated from SECURITY.md.</p>
+<h1 id="security-policy">Security Policy</h1>
+<h2 id="supported-versions">Supported Versions</h2>
+<p>PyTransformer uses semantic versioning. Security fixes are handled on the latest public release and the default development branch.</p>
+<h2 id="reporting-a-vulnerability">Reporting a Vulnerability</h2>
+<p>Please report security concerns privately before opening a public issue.</p>
+<p>Preferred contact:</p>
+<ul><li>Paul Tocatlian: &lt;https://www.tocatlian.com&gt;</li></ul>
+<p>Include:</p>
+<ul><li>A clear description of the issue.</li><li>The affected command or module.</li><li>Steps to reproduce when safe to share.</li><li>The expected and actual behavior.</li><li>Any relevant sample files, with private metadata removed.</li></ul>
+<h2 id="security-scope">Security Scope</h2>
+<p>PyTransformer processes local user-provided files and can create derived artifacts such as extracted text, transcripts, JPEG copies, rendered pages, and chunked videos.</p>
+<p>Important boundaries:</p>
+<ul><li>MP4 transcription uses Google Web Speech API through <code>SpeechRecognition</code>; users should not process sensitive audio unless that service is acceptable for their use case.</li><li>JPEG metadata may include GPS coordinates, camera identifiers, timestamps, comments, and editing metadata.</li><li>PDF and media outputs can contain sensitive source content in transformed form.</li><li>Commands should not be run on untrusted files in privileged environments.</li></ul>
+<h2 id="disclosure">Disclosure</h2>
+<p>If a vulnerability is confirmed, the project will aim to:</p>
+<ol><li>Reproduce and understand the issue.</li><li>Prepare a fix or mitigation.</li><li>Document the behavior change.</li><li>Credit the reporter if desired.</li><li>Publish the fix with release notes.</li></ol>
 </article>
 </main>
 </div>

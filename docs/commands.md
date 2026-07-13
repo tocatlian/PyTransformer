@@ -2,6 +2,8 @@
 
 PyTransformer exposes installed console commands through `pyproject.toml`. Each command also has an importable Python module under `pytransformer.cli`.
 
+See the [README](../README.md) for installation and quick start, [CONTRIBUTING.md](../CONTRIBUTING.md) for development and release requirements, and the [privacy guide](privacy.md) before processing sensitive files.
+
 Every command supports `-h`/`--help`. Help output describes the command, lists positional and optional arguments, and ends with an `Examples:` section showing installed command invocations.
 
 Command names follow their module names: `pyt_<family>_<object>_<action>[_mode].py` becomes `pyt-<family>-<object>-<action>[-mode]`. The command inventory module `pyt_help.py` is exposed as `pyt-help`.

@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Contributing - PyTransformer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="site-shell">
+<nav class="site-nav" aria-label="Documentation navigation"><a class="brand" href="index.html">PyTransformer</a>
+<p class="tagline">HTML docs generated from markdown.</p>
+<p class="nav-section-title">Docs</p>
+<ul class="nav-list">
+<li><a href="index.html">Home</a></li>
+<li><a href="commands.html">Commands</a></li>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="lessons-learned.html">Lessons</a></li>
+<li><a href="privacy.html">Privacy</a></li>
+<li><a href="contributing.html" aria-current="page">Contributing</a></li>
+<li><a href="security.html">Security</a></li>
+<li><a href="support.html">Support</a></li>
+<li><a href="code-of-conduct.html">Conduct</a></li>
+<li><a href="changelog.html">Changelog</a></li>
+</ul>
+<p class="nav-section-title">Command Pages</p>
+<ul class="nav-list">
+<li><a href="commands/pyt-help.html">pyt-help</a></li>
+<li><a href="commands/pyt-image-to-webp.html">pyt-image-to-webp</a></li>
+<li><a href="commands/pyt-image-split.html">pyt-image-split</a></li>
+<li><a href="commands/pyt-pdf-extract-text.html">pyt-pdf-extract-text</a></li>
+<li><a href="commands/pyt-pdf-extract-selectable-text.html">pyt-pdf-extract-selectable-text</a></li>
+<li><a href="commands/pyt-pdf-extract-selectable-text-batch.html">pyt-pdf-extract-selectable-text-batch</a></li>
+<li><a href="commands/pyt-pdf-render-jpeg.html">pyt-pdf-render-jpeg</a></li>
+<li><a href="commands/pyt-mp4-split-chunks.html">pyt-mp4-split-chunks</a></li>
+<li><a href="commands/pyt-mp4-transcribe.html">pyt-mp4-transcribe</a></li>
+<li><a href="commands/pyt-mp4-transcribe-batch.html">pyt-mp4-transcribe-batch</a></li>
+<li><a href="commands/pyt-m4a-to-mp3.html">pyt-m4a-to-mp3</a></li>
+<li><a href="commands/pyt-jpeg-show-metadata.html">pyt-jpeg-show-metadata</a></li>
+<li><a href="commands/pyt-jpeg-strip-metadata.html">pyt-jpeg-strip-metadata</a></li>
+<li><a href="commands/pyt-image-variants-count.html">pyt-image-variants-count</a></li>
+<li><a href="commands/pyt-image-collage-slice.html">pyt-image-collage-slice</a></li>
+<li><a href="commands/pyt-files-append-folder-name.html">pyt-files-append-folder-name</a></li>
+<li><a href="commands/pyt-text-concatenate.html">pyt-text-concatenate</a></li>
+</ul></nav>
+<main class="site-main">
+<article class="content">
+<p class="source-note">Generated from CONTRIBUTING.md.</p>
+<h1 id="contributing-to-pytransformer">Contributing to PyTransformer</h1>
+<p>PyTransformer is a Python package with a focused command-line surface. Changes should preserve the package structure, keep command behavior safe by default, and remain easy for another engineer to validate.</p>
+<p>Use the <a href="index.html">README</a> for the first-time-user path, the <a href="commands.html">command guide</a> for current command behavior, the <a href="privacy.html">privacy guide</a> for data handling, and the <a href="architecture.html">architecture guide</a> for implementation structure.</p>
+<h2 id="github-workflow">GitHub Workflow</h2>
+<p>The <code>main</code> branch is protected. For every change:</p>
+<ol><li>Create a focused <code>codex/&lt;description&gt;</code> branch from <code>main</code>.</li><li>Commit only the intended source, test, and documentation changes.</li><li>Push the branch and open a pull request targeting <code>main</code>.</li><li>Wait for all required Python CI checks to pass.</li><li>Squash-merge the pull request. Merged branches are deleted automatically.</li></ol>
+<p>Do not push directly to <code>main</code>. Keep generated files, local fixtures, and unrelated working-tree changes out of pull requests.</p>
+<h2 id="development-setup">Development Setup</h2>
+<p>Use Python 3.10 or newer.</p>
+<p>From a local checkout:</p>
+<pre><code class="language-bash">python3 -m pip install -e &quot;.[dev]&quot;</code></pre>
+<p>Install optional runtime dependencies only for the commands you need to exercise manually:</p>
+<pre><code class="language-bash">python3 -m pip install -e &quot;.[all]&quot;</code></pre>
+<p>Some commands also require system tools:</p>
+<ul><li>MP4 commands require FFmpeg through MoviePy.</li><li>OCR fallback requires a system Tesseract installation in addition to <code>pytesseract</code>.</li></ul>
+<h2 id="project-layout">Project Layout</h2>
+<pre><code class="language-text">src/pytransformer/
+  cli/      Command entry point modules.
+  core/     Shared implementation helpers.
+tests/      Standard-library unit tests.</code></pre>
+<h2 id="naming-standards">Naming Standards</h2>
+<ul><li>Package and module names use lowercase <code>snake_case</code>.</li><li>CLI modules live in <code>src/pytransformer/cli/</code>.</li><li>CLI module names use <code>pyt_domain_verb_object[_batch]</code>; for example, <code>pyt_jpeg_strip_metadata.py</code> and <code>pyt_pdf_extract_selectable_text_batch.py</code>.</li><li>Shared helpers live in <code>src/pytransformer/core/</code>.</li><li>Installed console commands use the hyphenated module name; for example, <code>pyt-jpeg-strip-metadata</code>.</li><li>Documentation refers to the project as <strong>PyTransformer</strong>.</li></ul>
+<h2 id="script-standards">Script Standards</h2>
+<ul><li>Every CLI module should expose a <code>main() -&gt; int</code> entry point.</li><li>Every CLI module should expose <code>build_parser() -&gt; argparse.ArgumentParser</code>.</li><li>Every CLI module should be wired in <code>[project.scripts]</code> in <code>pyproject.toml</code>.</li><li>Every CLI module should expose <code>--help</code>.</li><li>Every command help screen should describe the command, document arguments, and include an <code>Examples:</code> section with installed command invocations.</li><li>Every CLI module should include the standard header fields used by the existing modules.</li><li>Prefer <code>argparse</code>, <code>pathlib</code>, explicit validation, clear exit statuses, and deterministic directory ordering.</li><li>Use <code>-o</code>/<code>--output</code> for commands that write one file, <code>-o</code>/<code>--output-folder</code> for commands that write into a folder, and <code>--quiet</code> for reduced terminal logging.</li><li>Batch folder commands should skip hidden dotfiles by default and expose <code>--include-hidden</code> when hidden files can be included.</li><li>Default behavior should avoid overwriting files or performing destructive actions without clear confirmation.</li><li>Batch commands should skip symlinks unless there is a documented reason not to.</li><li>Shared behavior belongs in <code>pytransformer.core</code> when it removes meaningful duplication.</li></ul>
+<h2 id="validation-expectations">Validation Expectations</h2>
+<p>Before sharing changes, install the development extra and run the CI-equivalent gate:</p>
+<pre><code class="language-bash">python3 -m pip install -e &quot;.[dev]&quot;
+make validate</code></pre>
+<p><code>make validate</code> covers compilation, linting, formatting, type checks, hook configuration, generated documentation and links, command help, installed entry points, unit tests, repository-wide coverage, and package metadata.</p>
+<p>Run <code>make smoke-pdf</code>, <code>make smoke-jpeg</code>, or <code>make smoke-m4a</code> when the change affects that optional domain. They require the matching extras or system tools; use generated fixtures rather than private files.</p>
+<p>To install local pre-commit hooks:</p>
+<pre><code class="language-bash">python3 -m pre_commit install</code></pre>
+<p>If optional dependencies are installed, also run the relevant media/PDF/JPEG command manually against a small fixture and confirm the output is correct.</p>
+<p>For isolated local checks that mirror CI-style environments, run:</p>
+<pre><code class="language-bash">python3 -m tox
+python3 -m tox -e smoke-pdf,smoke-jpeg</code></pre>
+<p>The optional smoke environments install the matching package extras and use generated fixtures, so they are useful before changing PDF or JPEG command behavior.</p>
+<h2 id="release-checklist">Release Checklist</h2>
+<p>Start with the <a href="contributing.html#validation-expectations">validation expectations</a> and complete the optional smoke checks for the affected domains. Before tagging or publishing, confirm:</p>
+<ul><li>The <a href="index.html">README</a>, <a href="commands.html">command guide</a>, <a href="privacy.html">privacy guide</a>, <a href="architecture.html">architecture guide</a>, <a href="changelog.html">CHANGELOG.md</a>, <a href="security.html">SECURITY.md</a>, and <a href="support.html">SUPPORT.md</a> match the release.</li><li><code>LICENSE</code> and source SPDX headers use the correct license and copyright range.</li><li>Every command module remains executable.</li><li><code>.gitignore</code> covers generated media, logs, caches, and packaging artifacts.</li><li>Issue templates, the pull request template, Dependabot configuration, and CI workflow are present.</li><li>No private PDFs, media files, transcripts, logs, local paths, or JPEG metadata are included.</li></ul>
+<h2 id="adding-a-new-command">Adding a New Command</h2>
+<ol><li>Add a module under <code>src/pytransformer/cli/&lt;domain&gt;_&lt;action&gt;.py</code>.</li><li>Add a <code>main() -&gt; int</code> entry point.</li><li>Add the command to <code>[project.scripts]</code> in <code>pyproject.toml</code>.</li><li>Add argparse options with safe defaults.</li><li>Add the command&#x27;s behavior, examples, outputs, dependencies, and privacy implications to the <a href="commands.html">command guide</a> and the relevant supporting docs.</li><li>Update the README only when the user-facing overview or command category links need to change.</li><li>Add tests for logic that can run without optional external services.</li><li>Run <code>make docs</code>, then <code>make validate</code>.</li></ol>
+</article>
+</main>
+</div>
+</body>
+</html>

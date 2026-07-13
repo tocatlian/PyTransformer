@@ -17,6 +17,11 @@
 <li><a href="architecture.html">Architecture</a></li>
 <li><a href="lessons-learned.html">Lessons</a></li>
 <li><a href="privacy.html">Privacy</a></li>
+<li><a href="contributing.html">Contributing</a></li>
+<li><a href="security.html">Security</a></li>
+<li><a href="support.html">Support</a></li>
+<li><a href="code-of-conduct.html">Conduct</a></li>
+<li><a href="changelog.html">Changelog</a></li>
 </ul>
 <p class="nav-section-title">Command Pages</p>
 <ul class="nav-list">
@@ -43,6 +48,7 @@
 <p class="source-note">Generated from docs/commands.md.</p>
 <h1 id="command-guide">Command Guide</h1>
 <p>PyTransformer exposes installed console commands through <code>pyproject.toml</code>. Each command also has an importable Python module under <code>pytransformer.cli</code>.</p>
+<p>See the <a href="index.html">README</a> for installation and quick start, <a href="contributing.html">CONTRIBUTING.md</a> for development and release requirements, and the <a href="privacy.html">privacy guide</a> before processing sensitive files.</p>
 <p>Every command supports <code>-h</code>/<code>--help</code>. Help output describes the command, lists positional and optional arguments, and ends with an <code>Examples:</code> section showing installed command invocations.</p>
 <p>Command names follow their module names: <code>pyt_&lt;family&gt;_&lt;object&gt;_&lt;action&gt;[_mode].py</code> becomes <code>pyt-&lt;family&gt;-&lt;object&gt;-&lt;action&gt;[-mode]</code>. The command inventory module <code>pyt_help.py</code> is exposed as <code>pyt-help</code>.</p>
 <h2 id="command-pages">Command Pages</h2>

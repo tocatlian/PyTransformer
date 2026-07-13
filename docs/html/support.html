@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Privacy - PyTransformer</title>
+  <title>Support - PyTransformer</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -16,10 +16,10 @@
 <li><a href="commands.html">Commands</a></li>
 <li><a href="architecture.html">Architecture</a></li>
 <li><a href="lessons-learned.html">Lessons</a></li>
-<li><a href="privacy.html" aria-current="page">Privacy</a></li>
+<li><a href="privacy.html">Privacy</a></li>
 <li><a href="contributing.html">Contributing</a></li>
 <li><a href="security.html">Security</a></li>
-<li><a href="support.html">Support</a></li>
+<li><a href="support.html" aria-current="page">Support</a></li>
 <li><a href="code-of-conduct.html">Conduct</a></li>
 <li><a href="changelog.html">Changelog</a></li>
 </ul>
@@ -45,23 +45,18 @@
 </ul></nav>
 <main class="site-main">
 <article class="content">
-<p class="source-note">Generated from docs/privacy.md.</p>
-<h1 id="privacy-guide">Privacy Guide</h1>
-<p>PyTransformer works with files that often contain sensitive information. Treat generated outputs with the same care as source files.</p>
-<h2 id="jpeg-metadata">JPEG Metadata</h2>
-<p>JPEG metadata may include:</p>
-<ul><li>GPS coordinates.</li><li>Camera make, model, and serial-like identifiers.</li><li>Capture timestamps.</li><li>Editing software details.</li><li>Captions, comments, and other descriptive fields.</li></ul>
-<p>Recommended workflow:</p>
-<ol><li>Inspect with <code>pyt-jpeg-show-metadata</code>.</li><li>Create cleaned copies with <code>pyt-jpeg-strip-metadata</code>.</li><li>Review the cleaned output before publishing.</li></ol>
-<h2 id="mp4-transcription">MP4 Transcription</h2>
-<p>MP4 transcription commands use Google Web Speech API through the <code>SpeechRecognition</code> package.</p>
-<p>Do not use transcription commands on sensitive audio unless sending audio to that service is acceptable for your use case.</p>
-<h2 id="pdf-and-text-outputs">PDF And Text Outputs</h2>
-<p>PDF commands may extract or render sensitive content into new files:</p>
-<ul><li>Extracted <code>.txt</code> files.</li><li>Extraction logs.</li><li>Rendered JPEG pages.</li></ul>
-<p>Text concatenation can combine separate files into a single artifact that may be easier to share accidentally.</p>
-<h2 id="working-with-untrusted-files">Working With Untrusted Files</h2>
-<p>Avoid running file-processing commands on untrusted files in privileged environments. Use a disposable folder or sandbox when evaluating unknown inputs.</p>
+<p class="source-note">Generated from SUPPORT.md.</p>
+<h1 id="support">Support</h1>
+<p>PyTransformer is maintained as a public command-line utility suite.</p>
+<h2 id="questions-and-bugs">Questions And Bugs</h2>
+<p>Use GitHub issues for:</p>
+<ul><li>Reproducible bugs.</li><li>Documentation gaps.</li><li>Installation problems.</li><li>Feature requests.</li></ul>
+<p>Please include:</p>
+<ul><li>The exact <code>pyt-*</code> command or Python module.</li><li>Python version and operating system.</li><li>Installed optional dependency group, such as <code>.[pdf]</code> or <code>.[jpeg]</code>.</li><li>A minimal command that reproduces the issue.</li><li>Terminal output with private paths, metadata, and file contents removed.</li></ul>
+<h2 id="security">Security</h2>
+<p>Do not open public issues for suspected security problems or private-data exposure. Follow <code>SECURITY.md</code> instead.</p>
+<h2 id="private-files">Private Files</h2>
+<p>Avoid attaching original PDFs, JPEGs, MP4 files, transcripts, or logs unless you have removed sensitive content and metadata. A small synthetic fixture is usually better than a real personal file.</p>
 </article>
 </main>
 </div>
