@@ -34,6 +34,7 @@ from pytransformer.core.common import (
     fail,
     require_existing_file,
     require_int_range,
+    temporary_output_path,
 )
 
 try:
@@ -800,15 +801,16 @@ def main() -> int:
                 output_format=output_format,
             )
 
-            save_output_image(
-                output_image,
-                output_path,
-                output_format=output_format,
-                quality=args.quality,
-                icc_profile=icc_profile,
-                dpi=dpi,
-                resolution=resolution,
-            )
+            with temporary_output_path(output_path) as temporary_path:
+                save_output_image(
+                    output_image,
+                    temporary_path,
+                    output_format=output_format,
+                    quality=args.quality,
+                    icc_profile=icc_profile,
+                    dpi=dpi,
+                    resolution=resolution,
+                )
         finally:
             if output_image is not None:
                 output_image.close()

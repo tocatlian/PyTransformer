@@ -211,7 +211,7 @@ def convert_m4a_to_mp3(
     bitrate: str | None = None,
     ffmpeg_path: str | None = None,
 ) -> None:
-    """Convert one M4A file to MP3 with FFmpeg and finalize it atomically."""
+    """Convert one M4A file to MP3 with FFmpeg and finalize it safely."""
     resolved_ffmpeg_path = ffmpeg_path or require_ffmpeg()
     try:
         with temporary_output_path(output_path) as temporary_path:

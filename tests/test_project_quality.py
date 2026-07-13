@@ -369,6 +369,37 @@ class CommonHelperTests(unittest.TestCase):
             with self.assertRaises(common.ScriptError):
                 common.ensure_output_path(output_folder, overwrite=True)
 
+    def test_file_provider_path_detects_icloud_metadata(self) -> None:
+        def fake_getxattr(_path: str, attribute: str) -> bytes:
+            if attribute == "com.apple.icloud.desktop":
+                return b"1"
+            raise OSError("attribute not found")
+
+        with (
+            patch.object(common.sys, "platform", "darwin"),
+            patch.object(common.os, "getxattr", create=True, side_effect=fake_getxattr),
+        ):
+            self.assertTrue(common.is_file_provider_path(Path("/Users/example/Desktop/recording.mp3")))
+
+    def test_file_provider_path_returns_false_without_provider_metadata(self) -> None:
+        with (
+            patch.object(common.sys, "platform", "darwin"),
+            patch.object(common.os, "getxattr", create=True, side_effect=OSError("attribute not found")),
+        ):
+            self.assertFalse(common.is_file_provider_path(Path("/tmp/recording.mp3")))
+
+    def test_file_provider_path_uses_macos_xattr_command_when_needed(self) -> None:
+        result = subprocess.CompletedProcess([], 0, stdout=b"1", stderr=b"")
+        with (
+            patch.object(common.sys, "platform", "darwin"),
+            patch.object(common.os, "getxattr", None, create=True),
+            patch.object(common.shutil, "which", return_value="/usr/bin/xattr"),
+            patch.object(common.subprocess, "run", return_value=result) as run_mock,
+        ):
+            self.assertTrue(common.is_file_provider_path(Path("/Users/example/Desktop/recording.mp3")))
+
+        self.assertEqual(run_mock.call_args.args[0][:3], ["/usr/bin/xattr", "-p", "com.apple.file-provider-domain-id"])
+
     def test_temporary_output_path_commits_and_cleans_up(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             output_path = Path(tmp) / "output.txt"
@@ -389,6 +420,44 @@ class CommonHelperTests(unittest.TestCase):
                     raise RuntimeError("write failed")
 
             self.assertEqual(output_path.read_text(encoding="utf-8"), "original")
+
+    def test_temporary_output_path_uses_external_staging_for_file_provider_output(self) -> None:
+        with tempfile.TemporaryDirectory() as output_tmp, tempfile.TemporaryDirectory() as staging_tmp:
+            output_path = Path(output_tmp) / "output.txt"
+            staging_path = Path(staging_tmp)
+            with (
+                patch.object(common, "is_file_provider_path", return_value=True),
+                patch.object(common.tempfile, "gettempdir", return_value=staging_tmp),
+            ):
+                with common.temporary_output_path(output_path) as temporary_path:
+                    self.assertEqual(temporary_path.parent, staging_path.resolve())
+                    temporary_path.write_text("complete", encoding="utf-8")
+
+            self.assertEqual(output_path.read_text(encoding="utf-8"), "complete")
+            self.assertEqual(list(staging_path.iterdir()), [])
+
+    def test_temporary_output_path_uses_destination_folder_for_normal_output(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            output_path = Path(tmp) / "output.txt"
+            with patch.object(common, "is_file_provider_path", return_value=False):
+                with common.temporary_output_path(output_path) as temporary_path:
+                    self.assertEqual(temporary_path.parent, output_path.parent.resolve())
+                    temporary_path.write_text("complete", encoding="utf-8")
+
+            self.assertEqual(output_path.read_text(encoding="utf-8"), "complete")
+
+    def test_copy_temporary_output_replaces_existing_output(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            temporary_path = folder / "temporary.txt"
+            output_path = folder / "output.txt"
+            temporary_path.write_text("new", encoding="utf-8")
+            output_path.write_text("original", encoding="utf-8")
+
+            common.copy_temporary_output(temporary_path, output_path)
+
+            self.assertEqual(output_path.read_text(encoding="utf-8"), "new")
+            self.assertEqual(temporary_path.read_text(encoding="utf-8"), "new")
 
     def test_path_and_value_validation_failures_are_user_facing(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

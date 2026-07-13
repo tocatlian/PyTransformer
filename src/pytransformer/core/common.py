@@ -9,6 +9,8 @@ import argparse
 import contextlib
 import logging
 import os
+import shutil
+import subprocess
 import sys
 import tempfile
 from pathlib import Path
@@ -112,13 +114,92 @@ def ensure_output_path(
     return resolved
 
 
+def copy_temporary_output(temporary_path: Path, output_path: Path) -> None:
+    """Copy a completed temporary file into its final path and flush it to disk."""
+    resolved = resolve_user_path(output_path)
+    output_existed = resolved.exists()
+    created_output = False
+    backup_path: Path | None = None
+    try:
+        if output_existed:
+            backup_descriptor, backup_name = tempfile.mkstemp(
+                prefix=".pytransformer-backup-",
+                suffix=resolved.suffix,
+            )
+            os.close(backup_descriptor)
+            backup_path = Path(backup_name)
+            shutil.copyfile(resolved, backup_path)
+
+        destination_mode = "wb" if output_existed else "xb"
+        destination = resolved.open(destination_mode)
+        created_output = not output_existed
+        try:
+            with temporary_path.open("rb") as source:
+                with destination:
+                    shutil.copyfileobj(source, destination)
+                    destination.flush()
+                    os.fsync(destination.fileno())
+        finally:
+            if not destination.closed:
+                destination.close()
+    except OSError:
+        if output_existed and backup_path is not None:
+            with contextlib.suppress(OSError):
+                shutil.copyfile(backup_path, resolved)
+        elif created_output:
+            with contextlib.suppress(OSError):
+                resolved.unlink()
+        raise
+    finally:
+        if backup_path is not None:
+            with contextlib.suppress(OSError):
+                backup_path.unlink()
+
+
+def is_file_provider_path(path: Path) -> bool:
+    """Return whether the output folder is managed by Apple's File Provider system."""
+    if sys.platform != "darwin":
+        return False
+
+    getxattr = getattr(os, "getxattr", None)
+    parent = os.fspath(path.parent)
+    for attribute in (
+        "com.apple.file-provider-domain-id",
+        "com.apple.icloud.desktop",
+        "com.apple.fileprovider.detached#B",
+    ):
+        if getxattr is not None:
+            try:
+                getxattr(parent, attribute)
+            except OSError:
+                continue
+            return True
+
+        xattr_command = shutil.which("xattr")
+        if xattr_command is None:
+            return False
+        try:
+            result = subprocess.run(
+                [xattr_command, "-p", attribute, parent],
+                capture_output=True,
+                check=False,
+            )
+        except OSError:
+            return False
+        if result.returncode == 0:
+            return True
+    return False
+
+
 @contextlib.contextmanager
 def temporary_output_path(path: Path) -> Iterator[Path]:
-    """Yield a same-directory temporary path and replace the final path on success."""
+    """Yield a temporary path and finalize it safely for the destination filesystem."""
     resolved = resolve_user_path(path)
+    provider_output = is_file_provider_path(resolved)
+    temporary_parent = Path(tempfile.gettempdir()).resolve() if provider_output else resolved.parent
     try:
         file_descriptor, temporary_name = tempfile.mkstemp(
-            dir=resolved.parent,
+            dir=temporary_parent,
             prefix=f".{resolved.stem}-",
             suffix=resolved.suffix,
         )
@@ -131,7 +212,10 @@ def temporary_output_path(path: Path) -> Iterator[Path]:
         temporary_path.unlink()
         yield temporary_path
         try:
-            temporary_path.replace(resolved)
+            if provider_output:
+                copy_temporary_output(temporary_path, resolved)
+            else:
+                temporary_path.replace(resolved)
         except OSError as exc:
             raise ScriptError(f"Could not finalize output file '{resolved}': {exc}") from exc
     finally:

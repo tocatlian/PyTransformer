@@ -831,10 +831,14 @@ class ImageCommandTests(unittest.TestCase):
             for item in input_paths:
                 item.write_bytes(b"jpg")
             fake = FakeImage((4, 4))
+
+            def fake_save(_image: object, output_path: Path, **_kwargs: object) -> None:
+                output_path.write_bytes(b"output")
+
             with (
                 patch.object(collage_cli, "load_image", return_value=fake),
                 patch.object(collage_cli, "create_sliced_collage", return_value=fake),
-                patch.object(collage_cli, "save_output_image"),
+                patch.object(collage_cli, "save_output_image", side_effect=fake_save),
                 patch.object(
                     sys,
                     "argv",
@@ -957,12 +961,20 @@ class ImageCommandTests(unittest.TestCase):
             first, second = folder / "first.jpg", folder / "second.jpg"
             first.write_bytes(b"x")
             second.write_bytes(b"x")
+
+            def fake_save(_image: object, output_path: Path, **_kwargs: object) -> None:
+                output_path.write_bytes(b"output")
+
             with (
                 patch.object(collage_cli, "load_image", side_effect=[FakeImage((4, 4)), FakeImage((8, 8))]),
                 patch.object(collage_cli, "Image", FakeImageModule()),
                 patch.object(collage_cli, "ImageOps", object()),
-                patch.object(collage_cli, "save_output_image"),
-                patch.object(sys, "argv", ["pyt-image-collage-slice", "2", str(first), str(second)]),
+                patch.object(collage_cli, "save_output_image", side_effect=fake_save),
+                patch.object(
+                    sys,
+                    "argv",
+                    ["pyt-image-collage-slice", "2", str(first), str(second), "--output", str(folder / "collage.jpg")],
+                ),
             ):
                 self.assertEqual(collage_cli.main(), 0)
             for error, expected in ((KeyboardInterrupt(), 130), (MemoryError(), 1), (RuntimeError("boom"), 1)):
