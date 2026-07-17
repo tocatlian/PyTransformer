@@ -13,6 +13,7 @@ This project follows the spirit of [Keep a Changelog](https://keepachangelog.com
 
 ### Fixed
 
+- Finalize macOS-generated files through a visible final-name write so Finder reliably discovers M4A-to-MP3 output, including folders nested inside File Provider locations.
 - Removed copied Pillow image info when writing stripped JPEGs so JPEG comments are not preserved in cleaned output.
 
 ## [1.0.0] - 2026-06-26
