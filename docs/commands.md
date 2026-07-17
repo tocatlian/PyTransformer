@@ -221,7 +221,7 @@ Writes:
 - The default LAME variable-bitrate quality is 2; use `--quality 0` through `--quality 9` to change it.
 - Use `--bitrate 192k` for constant-bitrate output instead of variable-bitrate quality.
 - Metadata and available embedded cover art are copied to the MP3 when FFmpeg supports the source format.
-- Each output is finalized through a temporary sibling file. A failed conversion does not replace an existing output or stop later inputs.
+- On macOS, each output is staged outside the destination and then copied into its final name so Finder reliably discovers it, including in ordinary folders nested inside cloud-managed locations. Other platforms finalize through a temporary sibling file unless the destination is an Apple File Provider location. A failed conversion does not replace an existing output or stop later inputs.
 
 Dependencies:
 

@@ -396,6 +396,21 @@ class CommonHelperTests(unittest.TestCase):
         ):
             self.assertTrue(common.is_file_provider_path(Path("/Users/example/Desktop/recording.mp3")))
 
+    def test_file_provider_path_detects_metadata_on_an_ancestor_folder(self) -> None:
+        provider_root = "/Users/example/Library/Mobile Documents/com~apple~CloudDocs"
+
+        def fake_getxattr(path: str, attribute: str) -> bytes:
+            if path == provider_root and attribute == "com.apple.file-provider-domain-id":
+                return b"provider"
+            raise OSError("attribute not found")
+
+        output_path = Path(provider_root) / "recordings" / "2026" / "recording.mp3"
+        with (
+            patch.object(common.sys, "platform", "darwin"),
+            patch.object(common.os, "getxattr", create=True, side_effect=fake_getxattr),
+        ):
+            self.assertTrue(common.is_file_provider_path(output_path))
+
     def test_file_provider_path_returns_false_without_provider_metadata(self) -> None:
         with (
             patch.object(common.sys, "platform", "darwin"),
@@ -451,10 +466,29 @@ class CommonHelperTests(unittest.TestCase):
             self.assertEqual(output_path.read_text(encoding="utf-8"), "complete")
             self.assertEqual(list(staging_path.iterdir()), [])
 
+    def test_temporary_output_path_uses_external_staging_for_all_macos_output(self) -> None:
+        with tempfile.TemporaryDirectory() as output_tmp, tempfile.TemporaryDirectory() as staging_tmp:
+            output_path = Path(output_tmp) / "output.txt"
+            staging_path = Path(staging_tmp)
+            with (
+                patch.object(common.sys, "platform", "darwin"),
+                patch.object(common, "is_file_provider_path", return_value=False),
+                patch.object(common.tempfile, "gettempdir", return_value=staging_tmp),
+            ):
+                with common.temporary_output_path(output_path) as temporary_path:
+                    self.assertEqual(temporary_path.parent, staging_path.resolve())
+                    temporary_path.write_text("complete", encoding="utf-8")
+
+            self.assertEqual(output_path.read_text(encoding="utf-8"), "complete")
+            self.assertEqual(list(staging_path.iterdir()), [])
+
     def test_temporary_output_path_uses_destination_folder_for_normal_output(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             output_path = Path(tmp) / "output.txt"
-            with patch.object(common, "is_file_provider_path", return_value=False):
+            with (
+                patch.object(common.sys, "platform", "linux"),
+                patch.object(common, "is_file_provider_path", return_value=False),
+            ):
                 with common.temporary_output_path(output_path) as temporary_path:
                     self.assertEqual(temporary_path.parent, output_path.parent.resolve())
                     temporary_path.write_text("complete", encoding="utf-8")

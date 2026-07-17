@@ -157,46 +157,66 @@ def copy_temporary_output(temporary_path: Path, output_path: Path) -> None:
 
 
 def is_file_provider_path(path: Path) -> bool:
-    """Return whether the output folder is managed by Apple's File Provider system."""
+    """Return whether the output folder or an ancestor is managed by File Provider."""
     if sys.platform != "darwin":
         return False
 
     getxattr = getattr(os, "getxattr", None)
-    parent = os.fspath(path.parent)
-    for attribute in (
+    attributes = (
         "com.apple.file-provider-domain-id",
         "com.apple.icloud.desktop",
         "com.apple.fileprovider.detached#B",
-    ):
-        if getxattr is not None:
-            try:
-                getxattr(parent, attribute)
-            except OSError:
-                continue
-            return True
-
+    )
+    if getxattr is None:
         xattr_command = shutil.which("xattr")
         if xattr_command is None:
             return False
-        try:
-            result = subprocess.run(
-                [xattr_command, "-p", attribute, parent],
-                capture_output=True,
-                check=False,
-            )
-        except OSError:
-            return False
-        if result.returncode == 0:
-            return True
+    else:
+        xattr_command = None
+
+    # Provider metadata is usually attached to the provider root, rather than
+    # every child folder. Checking only path.parent misses normal-looking
+    # folders nested in iCloud Drive, Desktop, Dropbox, and OneDrive.
+    for folder in (path.parent, *path.parent.parents):
+        folder_name = os.fspath(folder)
+        for attribute in attributes:
+            if getxattr is not None:
+                try:
+                    getxattr(folder_name, attribute)
+                except OSError:
+                    continue
+                return True
+
+            if xattr_command is None:
+                return False
+            try:
+                result = subprocess.run(
+                    [xattr_command, "-p", attribute, folder_name],
+                    capture_output=True,
+                    check=False,
+                )
+            except OSError:
+                return False
+            if result.returncode == 0:
+                return True
     return False
 
 
 @contextlib.contextmanager
 def temporary_output_path(path: Path) -> Iterator[Path]:
-    """Yield a temporary path and finalize it safely for the destination filesystem."""
+    """Yield a temporary path and finalize it safely for the destination filesystem.
+
+    macOS output is always staged outside the destination and copied into its
+    final name. Finder can miss a hidden temporary file being renamed into a
+    watched folder, including ordinary folders whose provider metadata is not
+    exposed to applications. Other platforms retain the atomic same-folder
+    replacement behavior unless the output is a detected Apple File Provider
+    path.
+    """
     resolved = resolve_user_path(path)
     provider_output = is_file_provider_path(resolved)
-    temporary_parent = Path(tempfile.gettempdir()).resolve() if provider_output else resolved.parent
+    copy_finalize = sys.platform == "darwin" or provider_output
+    temporary_parent = Path(tempfile.gettempdir()).resolve() if copy_finalize else resolved.parent
     try:
         file_descriptor, temporary_name = tempfile.mkstemp(
             dir=temporary_parent,
@@ -212,7 +232,7 @@ def temporary_output_path(path: Path) -> Iterator[Path]:
         temporary_path.unlink()
         yield temporary_path
         try:
-            if provider_output:
+            if copy_finalize:
                 copy_temporary_output(temporary_path, resolved)
             else:
                 temporary_path.replace(resolved)
