@@ -55,7 +55,7 @@ jpeg = [
 ]
 mp4 = [
     "moviepy>=1.0",
-    "SpeechRecognition>=3.10",
+    "SpeechRecognition>=3.17.0",
 ]
 ocr = [
     "pytesseract>=0.3",
@@ -67,7 +67,7 @@ all = [
     "pymupdf>=1.24",
     "pypdf>=4.0",
     "pytesseract>=0.3",
-    "SpeechRecognition>=3.10",
+    "SpeechRecognition>=3.17.0",
 ]
 dev = [
     "build>=1.2",
