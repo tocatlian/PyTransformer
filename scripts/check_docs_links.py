@@ -20,7 +20,6 @@ sys.path.insert(0, str(SCRIPT_DIR))
 
 from build_docs import slugify, strip_inline_markup  # noqa: E402
 
-
 MARKDOWN_LINK_PATTERN = re.compile(r"!?\[[^\]]*\]\(([^)]+)\)")
 HTML_TARGET_PATTERN = re.compile(r'\b(?:href|src)="([^"]+)"')
 HEADING_PATTERN = re.compile(r"^#{1,6}\s+(.+?)\s*$")
@@ -28,7 +27,10 @@ ID_PATTERN = re.compile(r'\bid="([^"]+)"')
 
 
 def markdown_sources() -> list[Path]:
-    paths = [*sorted(ROOT.glob("*.md")), *sorted(DOCS_DIR.glob("*.md"))]
+    paths = [
+        *sorted(ROOT.glob("*.md")),
+        *(path for path in sorted(DOCS_DIR.rglob("*.md")) if HTML_DIR not in path.parents),
+    ]
     return list(dict.fromkeys(path.resolve() for path in paths))
 
 
@@ -77,7 +79,7 @@ def check_markdown_links(errors: list[str]) -> None:
             for match in MARKDOWN_LINK_PATTERN.finditer(line):
                 raw_target = match.group(1)
                 path_text, anchor = parse_target(raw_target)
-                if is_external_target(path_text) or not path_text and not anchor:
+                if is_external_target(path_text) or (not path_text and not anchor):
                     continue
 
                 target_path = (source.parent / path_text).resolve() if path_text else source.resolve()

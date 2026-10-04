@@ -2,11 +2,11 @@
 
 PyTransformer is a Python package with a focused command-line surface. Changes should preserve the package structure, keep command behavior safe by default, and remain easy for another engineer to validate.
 
-Use the [README](README.md) for the first-time-user path, the [command guide](docs/commands.md) for current command behavior, the [privacy guide](docs/privacy.md) for data handling, and the [architecture guide](docs/architecture.md) for implementation structure.
+Use the [documentation ownership map](docs/knowledge.md) to locate authoritative requirements and procedures. This page owns development conventions, testing expectations, the contribution workflow, and release readiness.
 
 ## GitHub Workflow
 
-The `main` branch is protected. For every change:
+The `main` branch is protected. [AGENTS.md](AGENTS.md#github-workflow) owns Codex Git authorization constraints. When Git contribution work is authorized:
 
 1. Create a focused `codex/<description>` branch from `main`.
 2. Commit only the intended source, test, and documentation changes.
@@ -14,7 +14,7 @@ The `main` branch is protected. For every change:
 4. Wait for all required Python CI checks to pass.
 5. Squash-merge the pull request. Merged branches are deleted automatically.
 
-Do not push directly to `main`. Keep generated files, local fixtures, and unrelated working-tree changes out of pull requests.
+Do not push directly to `main`. Keep generated files, local fixtures, and unrelated working-tree changes out of pull requests. Regenerate HTML locally for verification. The Pages workflow builds its deployment artifact from Markdown, as described in [Operations](docs/operations.md#deployment-scope).
 
 ## Development Setup
 
@@ -32,25 +32,17 @@ Install optional runtime dependencies only for the commands you need to exercise
 python3 -m pip install -e ".[all]"
 ```
 
-Some commands also require system tools:
-
-- MP4 commands require FFmpeg through MoviePy.
-- OCR fallback requires a system Tesseract installation in addition to `pytesseract`.
+The [README dependency groups](README.md#dependency-groups) own runtime setup, including FFmpeg and Tesseract. The [command guide](docs/commands.md) identifies which commands need each optional dependency.
 
 ## Project Layout
 
-```text
-src/pytransformer/
-  cli/      Command entry point modules.
-  core/     Shared implementation helpers.
-tests/      Standard-library unit tests.
-```
+The [architecture guide](docs/architecture.md#package-layout) owns the package layout and module responsibilities. Tests live under `tests/` and use the standard-library unittest framework.
 
 ## Naming Standards
 
 - Package and module names use lowercase `snake_case`.
 - CLI modules live in `src/pytransformer/cli/`.
-- CLI module names use `pyt_domain_verb_object[_batch]`; for example, `pyt_jpeg_strip_metadata.py` and `pyt_pdf_extract_selectable_text_batch.py`.
+- CLI module names start with `pyt_<domain>_` and a descriptive operation suffix, with a mode such as `_batch` when needed. Existing examples include `pyt_jpeg_strip_metadata.py`, `pyt_pdf_extract_selectable_text_batch.py`, and `pyt_image_variants_count.py`. Do not impose a fixed object/action word order on existing command names. The inventory module `pyt_help.py` is the shorter exception.
 - Shared helpers live in `src/pytransformer/core/`.
 - Installed console commands use the hyphenated module name; for example, `pyt-jpeg-strip-metadata`.
 - Documentation refers to the project as **PyTransformer**.
@@ -65,10 +57,8 @@ tests/      Standard-library unit tests.
 - Every CLI module should include the standard header fields used by the existing modules.
 - Prefer `argparse`, `pathlib`, explicit validation, clear exit statuses, and deterministic directory ordering.
 - Use `-o`/`--output` for commands that write one file, `-o`/`--output-folder` for commands that write into a folder, and `--quiet` for reduced terminal logging.
-- Batch folder commands should skip hidden dotfiles by default and expose `--include-hidden` when hidden files can be included.
-- Default behavior should avoid overwriting files or performing destructive actions without clear confirmation.
-- Batch commands should skip symlinks unless there is a documented reason not to.
-- Shared behavior belongs in `pytransformer.core` when it removes meaningful duplication.
+- Implement the [shared file safety requirements](docs/requirements.md#file-safety) and document command-specific controls or justified exceptions in the command guide.
+- Follow the [architecture boundaries](docs/architecture.md) for shared behavior and optional imports.
 
 ## Validation Expectations
 
@@ -79,7 +69,9 @@ python3 -m pip install -e ".[dev]"
 make validate
 ```
 
-`make validate` covers compilation, linting, formatting, type checks, hook configuration, generated documentation and links, command help, installed entry points, unit tests, repository-wide coverage, and package metadata.
+`make validate` covers compilation, linting, formatting, type checks, hook configuration, generated documentation and links, command help, installed entry points, unit tests, repository-wide coverage, and package metadata. The enforced coverage floor is configured in `pyproject.toml` and is currently 80 percent.
+
+Use focused tests for shared helpers and high-risk file behavior, including overwrite guards, hidden files, symlinks, and output finalization when affected. Use synthetic fixtures under the [privacy guidance](docs/privacy.md#development-fixtures-and-diagnostics).
 
 Run `make smoke-pdf`, `make smoke-jpeg`, or `make smoke-m4a` when the change affects that optional domain. They require the matching extras or system tools; use generated fixtures rather than private files.
 
@@ -113,7 +105,7 @@ Start with the [validation expectations](#validation-expectations) and complete 
 
 ## Adding a New Command
 
-1. Add a module under `src/pytransformer/cli/<domain>_<action>.py`.
+1. Add a module under `src/pytransformer/cli/` using the [naming standards](#naming-standards).
 2. Add a `main() -> int` entry point.
 3. Add the command to `[project.scripts]` in `pyproject.toml`.
 4. Add argparse options with safe defaults.
@@ -121,3 +113,7 @@ Start with the [validation expectations](#validation-expectations) and complete 
 6. Update the README only when the user-facing overview or command category links need to change.
 7. Add tests for logic that can run without optional external services.
 8. Run `make docs`, then `make validate`.
+
+## Durable Documentation
+
+Follow the [knowledge maintenance process](docs/knowledge.md#maintaining-knowledge) as part of every change that introduces or invalidates lasting requirements, conventions, decisions, or procedures. Update the topic's authoritative source and reference it elsewhere. Record consequential rationale in the [decision log](docs/lessons-learned.md). Archived chats must not be required to understand the completed change.

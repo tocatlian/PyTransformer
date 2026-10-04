@@ -24,12 +24,7 @@ Include:
 
 PyTransformer processes local user-provided files and can create derived artifacts such as extracted text, transcripts, JPEG copies, rendered pages, and chunked videos.
 
-Important boundaries:
-
-- MP4 transcription uses Google Web Speech API through `SpeechRecognition`; users should not process sensitive audio unless that service is acceptable for their use case.
-- JPEG metadata may include GPS coordinates, camera identifiers, timestamps, comments, and editing metadata.
-- PDF and media outputs can contain sensitive source content in transformed form.
-- Commands should not be run on untrusted files in privileged environments.
+The [privacy guide](docs/privacy.md) owns external-service disclosure, sensitive output handling, and precautions for untrusted files. The [product requirements](docs/requirements.md#file-safety) and [command guide](docs/commands.md) own file safety behavior and command-specific controls.
 
 ## Disclosure
 

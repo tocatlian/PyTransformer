@@ -45,9 +45,15 @@ class CommandPage:
 
 MARKDOWN_PAGES = [
     MarkdownPage(ROOT / "README.md", "index.html", "PyTransformer", "Home"),
+    MarkdownPage(DOCS_DIR / "knowledge.md", "knowledge.html", "Durable Project Knowledge", "Knowledge"),
+    MarkdownPage(ROOT / "AGENTS.md", "agents.html", "Codex Project Instructions", "Codex Instructions"),
+    MarkdownPage(DOCS_DIR / "requirements.md", "requirements.html", "Product Requirements", "Requirements"),
+    MarkdownPage(DOCS_DIR / "operations.md", "operations.html", "Operations", "Operations"),
     MarkdownPage(COMMANDS_SOURCE, "commands.html", "Command Guide", "Commands"),
     MarkdownPage(DOCS_DIR / "architecture.md", "architecture.html", "Architecture", "Architecture"),
-    MarkdownPage(DOCS_DIR / "lessons-learned.md", "lessons-learned.html", "Lessons Learned", "Lessons"),
+    MarkdownPage(
+        DOCS_DIR / "lessons-learned.md", "lessons-learned.html", "Decision Log And Lessons Learned", "Decisions"
+    ),
     MarkdownPage(DOCS_DIR / "privacy.md", "privacy.html", "Privacy", "Privacy"),
     MarkdownPage(ROOT / "CONTRIBUTING.md", "contributing.html", "Contributing", "Contributing"),
     MarkdownPage(ROOT / "SECURITY.md", "security.html", "Security", "Security"),
@@ -808,7 +814,10 @@ def check_site() -> int:
 
 
 def markdown_sources() -> list[Path]:
-    return [ROOT / "README.md", *sorted(DOCS_DIR.glob("*.md"))]
+    return [
+        *sorted(ROOT.glob("*.md")),
+        *(path for path in sorted(DOCS_DIR.rglob("*.md")) if HTML_DIR not in path.parents),
+    ]
 
 
 def snapshot_mtimes(paths: Iterable[Path]) -> dict[Path, int]:
@@ -816,14 +825,13 @@ def snapshot_mtimes(paths: Iterable[Path]) -> dict[Path, int]:
 
 
 def watch(interval_seconds: float) -> int:
-    sources = markdown_sources()
     print("Watching markdown documentation. Press Ctrl+C to stop.")
+    last_snapshot = snapshot_mtimes(markdown_sources())
     build_site(HTML_DIR)
-    last_snapshot = snapshot_mtimes(sources)
     try:
         while True:
             time.sleep(interval_seconds)
-            current_snapshot = snapshot_mtimes(sources)
+            current_snapshot = snapshot_mtimes(markdown_sources())
             if current_snapshot != last_snapshot:
                 build_site(HTML_DIR)
                 print("Rebuilt HTML documentation.")

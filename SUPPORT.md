@@ -21,8 +21,8 @@ Please include:
 
 ## Security
 
-Do not open public issues for suspected security problems or private-data exposure. Follow `SECURITY.md` instead.
+Do not open public issues for suspected security problems or private-data exposure. Follow [SECURITY.md](SECURITY.md) instead.
 
 ## Private Files
 
-Avoid attaching original PDFs, JPEGs, MP4 files, transcripts, or logs unless you have removed sensitive content and metadata. A small synthetic fixture is usually better than a real personal file.
+Follow the [privacy guidance for fixtures and diagnostics](docs/privacy.md#development-fixtures-and-diagnostics) before attaching source files or logs. Prefer a small synthetic fixture.
