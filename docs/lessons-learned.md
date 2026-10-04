@@ -1,61 +1,68 @@
-# Lessons Learned
+# Decision Log And Lessons Learned
 
-Use this page for rationale, discoveries, and project-specific reminders. It supplements the current requirements in the [README](../README.md), [command guide](commands.md), [privacy guide](privacy.md), [architecture guide](architecture.md), and [CONTRIBUTING.md](../CONTRIBUTING.md); it is not a second source of current command or contributor rules.
+This page owns important project decisions and their rationale. Current requirements live in the topic owners listed in [the documentation map](knowledge.md). Link to those owners instead of maintaining a second copy of their rules.
 
-## Documentation Map
+## Recording Decisions
 
-- First-time users: [README](../README.md)
-- Command behavior: [command guide](commands.md)
-- Privacy and data handling: [privacy guide](privacy.md)
-- Implementation structure: [architecture guide](architecture.md)
-- Development and release requirements: [CONTRIBUTING.md](../CONTRIBUTING.md)
-- Security reporting: [SECURITY.md](../SECURITY.md)
+For a new consequential choice, record a descriptive heading, decision date, status, context, rationale, consequences, and links to the current owners. Use statuses such as accepted, proposed, or superseded. When superseding a decision, link both entries and revise the current owner in the same task.
 
-Markdown is the source of truth. Generated pages under `docs/html/` are built from these sources and should not be edited directly.
+The existing choices below were recovered from repository documentation and implementation during the 2026-10-03 review. Their original decision dates were not recorded. They describe the current implemented design, not newly approved features.
 
-## Operating Principles
+## Small CLI Package With Optional Domains
 
-- Keep PyTransformer small, predictable, and command-line first.
-- Preserve the base install with no runtime dependencies; add optional extras only for domains that need them.
-- Keep command modules thin and place reusable behavior in `pytransformer.core`.
-- Prefer conservative file behavior over convenience when a command writes, renames, extracts, renders, or transcribes user data.
+Status: accepted, original date not recorded.
 
-These principles explain why the project separates command orchestration, shared helpers, optional dependencies, and privacy guidance across the documents above.
+A focused CLI package keeps each tool discoverable and scriptable. Keeping the base dependency-free avoids making simple filename and text operations depend on PDF or media libraries. Thin command orchestration and focused shared helpers reduce behavior drift without creating a large framework.
 
-## Why The Command Conventions Exist
+Consequences: optional domains require extra setup, and optional imports must permit base installation, help, tests, and type checks to work. Current scope belongs in [product requirements](requirements.md), the implementation strategy in [architecture](architecture.md), and setup in [README](../README.md#dependency-groups).
 
-Hyphenated installed commands, importable underscore-named modules, standard help output, explicit output options, deterministic batch behavior, and guarded writes make the tools easier to discover, automate, and review. The current conventions and exceptions belong in the [command guide](commands.md) and [contributor standards](../CONTRIBUTING.md).
+## Importable Modules And Shell Commands
 
-## Why The Documentation Workflow Exists
+Status: accepted, original date not recorded.
 
-Keeping one Markdown source for each topic prevents README, command, privacy, architecture, and generated HTML content from drifting apart. Run `make docs` after Markdown changes and `make docs-check` before committing; the latter verifies both generated output and local links.
+Python identifiers need underscores, while hyphenated terminal commands are idiomatic for shell users. The short `pyt-*` prefix and inventory command make a growing command suite easier to discover.
 
-## Testing Considerations
+Consequences: module names and console entry points must stay aligned. The authoritative convention is in [CONTRIBUTING.md](../CONTRIBUTING.md#naming-standards), and exact entry points belong in `pyproject.toml`.
 
-The repository-wide `make validate` gate protects package structure, command discoverability, generated docs, links, and the 80% coverage requirement. Shared helpers deserve focused tests because a small change there can affect several commands. Optional-domain smoke checks should use generated fixtures and only be required when the affected dependency or system tool is available; see [validation expectations](../CONTRIBUTING.md#validation-expectations).
+## One Markdown Source Per Topic
+
+Status: accepted, original date not recorded.
+
+Independent README, command, privacy, architecture, and HTML definitions can drift. Keeping Markdown as the authoring source and generating HTML lets the same knowledge serve repository readers and browser users.
+
+Consequences: new pages must be registered in the existing generator, and generated files must be checked after source changes. [Architecture](architecture.md#documentation-build) owns the build description. [AGENTS.md](../AGENTS.md#documentation) owns Codex's documentation obligations.
+
+## Finder Visible Output
+
+Status: accepted, original date not recorded.
+
+Finder and File Provider folders can miss a hidden temporary file renamed into place, including ordinary nested folders whose provider metadata is unavailable. This led to completed media output being difficult to discover in Finder.
+
+The shared helper uses a visible final-name copy on macOS rather than relying on provider detection alone. Consequence: that path trades atomic replacement for reliable discovery and uses backup and cleanup handling to mitigate copy failures. [Architecture](architecture.md#output-finalization) owns the implementation description, and the [M4A command contract](commands.md#pyt-m4a-to-mp3) owns user-facing behavior.
+
+## Repository Knowledge Survives Chat Removal
+
+Date: 2026-10-03. Status: accepted.
+
+The user requires archived chats to remain disposable without losing lasting project knowledge. Repository documentation therefore owns requirements, instructions, procedures, and decisions. The work is incomplete until lasting chat outcomes have been promoted to their topic owners.
+
+Consequences: [the ownership map](knowledge.md) routes new information, [AGENTS.md](../AGENTS.md) enforces the agent workflow, and this log retains rationale. Historical operation evidence is handled under [Operations](operations.md#verification-evidence-and-retention), not treated as current policy or deployment status.
+
+## Measure Storage Before Rewriting History
+
+Date: 2026-10-03. Status: accepted.
+
+The user needs aggressive disk space recovery on a nearly full MacBook. Inspection showed this project occupied about 2 MiB and its branch history already contained a single flattened commit. Further Git rewriting would recover little space while risking useful metadata and local recovery. Verified disposable caches, obsolete cleanup evidence, and redundant generated HTML were removed instead, while source, canonical documentation, and intentional edits were preserved.
+
+Consequences: [Operations](operations.md#disk-space-maintenance) owns the measured cleanup procedure and the boundary between project cleanup and separately authorized shared storage cleanup. Larger storage targets must be inspected outside this small repository rather than assuming Git history is responsible for disk pressure.
 
 ## Technical Discoveries
 
-- Console commands can use shell-friendly hyphenated names while their Python modules remain importable with underscores.
-- PyMuPDF is imported as `fitz`, so missing dependency messages should name the user-facing package and install extra clearly.
-- JPEG metadata can come from EXIF, GPS EXIF, XMP, IPTC, ICC profiles, comments, and Pillow `info` fields; raw binary metadata should be summarized rather than printed directly.
-- Preserving JPEG visual orientation, color profile, quantization tables, and subsampling is separate from preserving private descriptive metadata.
-- SpeechRecognition's Google Web Speech API uses network access; this is a privacy decision, not just an implementation detail.
-- File-provider and iCloud-backed folders may require staged output finalization so Finder and the provider see the completed file reliably.
+- PyMuPDF is imported as `fitz`. Its user-facing dependency name and install extra need to be clear in diagnostics.
+- JPEG metadata can come from EXIF, GPS EXIF, XMP, IPTC, ICC profiles, comments, and Pillow `info` fields. Summarizing raw binary metadata makes inspection usable.
+- Preserving JPEG visual orientation, color profile, quantization tables, and subsampling is separate from preserving private descriptive metadata. The [JPEG command contracts](commands.md#jpeg-commands) own the behavior.
+- Copying Pillow image info can retain comments during metadata stripping. The fix is recorded in [CHANGELOG.md](../CHANGELOG.md#unreleased).
+- SpeechRecognition's external service affects data handling as well as dependencies. The [privacy guide](privacy.md#mp4-transcription) owns the disclosure.
+- Different Git commit histories can describe the same source tree. The archived deployment cleanup established this after local history had been flattened. [Operations](operations.md#deployment-reconciliation) owns verification guidance.
 
-## Avoid Repeating
-
-- Do not add a second documentation generator or hand-edit `docs/html/`.
-- Do not import optional runtime dependencies at module import time when a guarded or lazy import keeps the base package usable.
-- Do not use private PDFs, videos, transcripts, logs, local paths, or JPEG metadata in tests or examples.
-- Do not broaden recursion, symlink following, overwrite behavior, or hidden-file inclusion without documenting and testing the safety impact.
-- Do not copy current command standards into this page; update the authoritative document and link to it instead.
-
-## Quick Audit Checklist
-
-- README points users to the authoritative guide for each topic.
-- Every command is represented in `docs/commands.md` and has generated HTML output.
-- Privacy-sensitive behavior is documented in `docs/privacy.md`.
-- Implementation rules are documented in `docs/architecture.md` or `CONTRIBUTING.md`, not repeated here.
-- `make docs-check` passes after Markdown changes.
-- Tests cover reusable logic and the highest-risk file behavior.
+These discoveries explain existing choices. If a discovery becomes a new recurring implementation requirement, place that requirement in its topic owner and link to it here.

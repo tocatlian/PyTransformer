@@ -37,3 +37,9 @@ Text concatenation can combine separate files into a single artifact that may be
 ## Working With Untrusted Files
 
 Avoid running file-processing commands on untrusted files in privileged environments. Use a disposable folder or sandbox when evaluating unknown inputs.
+
+## Development Fixtures And Diagnostics
+
+Use small synthetic fixtures for tests, examples, smoke checks, and bug reports. Do not include private PDFs, media, transcripts, logs, local paths, or JPEG metadata in committed examples or fixtures. Review diagnostics for sensitive content before sharing them.
+
+Generated media, extraction logs, cleanup inventories, and validation reports can contain source contents or private paths. Local retention and cleanup belong in [Operations](operations.md#verification-evidence-and-retention). Suspected vulnerabilities should follow [SECURITY.md](../SECURITY.md).

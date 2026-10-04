@@ -82,7 +82,7 @@ For local CI-style isolation, use `python3 -m tox` after installing the developm
 
 ## Naming Standard
 
-CLI modules usually use `pyt_<family>_<object>_<action>[_mode]` names. The installed command is the same name with underscores changed to hyphens. The inventory command `pyt_help.py` uses the shorter `pyt-help` name.
+See [CONTRIBUTING.md](CONTRIBUTING.md#naming-standards) for the authoritative naming conventions. Installed commands use hyphens and importable Python modules use underscores.
 
 Python modules:
 
@@ -119,10 +119,14 @@ The [command guide](docs/commands.md) is the authoritative reference for argumen
 
 ## Documentation
 
+- [Documentation ownership map](docs/knowledge.md): authoritative locations and the process for preserving lasting project knowledge.
+- [Codex instructions](AGENTS.md): repository-specific agent rules and authorization constraints.
+- [Product requirements](docs/requirements.md): shared product scope and safety requirements.
 - [Command guide](docs/commands.md): command-by-command behavior and dependency notes.
 - [Privacy guide](docs/privacy.md): privacy risks for metadata, transcripts, logs, and generated files.
 - [Architecture](docs/architecture.md): package layout, command structure, and documentation build.
-- [Lessons learned](docs/lessons-learned.md): rationale and project-specific lessons that supplement the normative contributor guidance.
+- [Decision log and lessons learned](docs/lessons-learned.md): important choices and their rationale.
+- [Operations](docs/operations.md): deployment, cleanup, retention, and authenticated tooling recovery.
 
 Static HTML documentation is generated from the markdown sources into `docs/html/`:
 
@@ -131,11 +135,11 @@ make docs
 make docs-watch
 ```
 
-`make docs` rebuilds the HTML once. `make docs-watch` keeps rebuilding when `README.md` or `docs/*.md` changes. Each command section from `docs/commands.md` also gets its own generated page under `docs/html/commands/`.
+`make docs` rebuilds the HTML once. `make docs-watch` watches root Markdown files and Markdown under `docs/`. Each command section from `docs/commands.md` also gets its own generated page under `docs/html/commands/`. See the [documentation build](docs/architecture.md#documentation-build) for page registration and verification.
 
 ## Safety Defaults
 
-Commands validate paths, avoid unexpected overwrites, skip symlinks in batch operations, and provide confirmation or dry-run controls for destructive work. See the [command guide](docs/commands.md) for command-specific behavior.
+See the [shared file safety requirements](docs/requirements.md#file-safety) and the [command guide](docs/commands.md) for command-specific controls and exceptions.
 
 ## Privacy Notes
 
@@ -143,7 +147,7 @@ MP4 transcription sends audio to Google Web Speech API, and JPEG, PDF, and media
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for project standards, validation expectations, release preparation, and guidance for adding new commands. The `main` branch is protected: use a focused `codex/<description>` branch, open a pull request, wait for all required CI checks, and squash-merge instead of pushing directly to `main`.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for project standards, validation expectations, release preparation, and guidance for adding new commands. The [GitHub workflow](CONTRIBUTING.md#github-workflow) describes branch and review requirements. [AGENTS.md](AGENTS.md#github-workflow) owns Codex Git authorization constraints.
 
 The project uses the [Code of Conduct](CODE_OF_CONDUCT.md) for collaboration expectations and [SUPPORT.md](SUPPORT.md) for issue-reporting guidance.
 

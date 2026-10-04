@@ -6,7 +6,7 @@ See the [README](../README.md) for installation and quick start, [CONTRIBUTING.m
 
 Every command supports `-h`/`--help`. Help output describes the command, lists positional and optional arguments, and ends with an `Examples:` section showing installed command invocations.
 
-Command names follow their module names: `pyt_<family>_<object>_<action>[_mode].py` becomes `pyt-<family>-<object>-<action>[-mode]`. The command inventory module `pyt_help.py` is exposed as `pyt-help`.
+Command names follow their module names with underscores changed to hyphens. [CONTRIBUTING.md](../CONTRIBUTING.md#naming-standards) owns the naming convention.
 
 ## Discovery Command
 
@@ -221,7 +221,7 @@ Writes:
 - The default LAME variable-bitrate quality is 2; use `--quality 0` through `--quality 9` to change it.
 - Use `--bitrate 192k` for constant-bitrate output instead of variable-bitrate quality.
 - Metadata and available embedded cover art are copied to the MP3 when FFmpeg supports the source format.
-- On macOS, each output is staged outside the destination and then copied into its final name so Finder reliably discovers it, including in ordinary folders nested inside cloud-managed locations. Other platforms finalize through a temporary sibling file unless the destination is an Apple File Provider location. A failed conversion does not replace an existing output or stop later inputs.
+- Completed outputs are finalized through the [shared output helper](architecture.md#output-finalization) so Finder discovers them reliably on macOS, including cloud-managed folders. A failed conversion does not replace an existing output or stop later inputs.
 
 Dependencies:
 
