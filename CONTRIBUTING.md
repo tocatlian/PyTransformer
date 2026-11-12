@@ -18,18 +18,28 @@ Do not push directly to `main`. Keep generated files, local fixtures, and unrela
 
 ## Development Setup
 
-Use Python 3.10 or newer.
-
-From a local checkout:
+Use Python 3.13 for local development. From a local checkout:
 
 ```bash
-python3 -m pip install -e ".[dev]"
+python3.13 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e ".[dev]"
 ```
 
-Install optional runtime dependencies only for the commands you need to exercise manually:
+Activate `.venv` before running project commands or `make` so they resolve to the same interpreter. On an Apple Silicon Mac using Homebrew, you can use `/opt/homebrew/bin/python3.13` to create it explicitly.
+
+Install optional extras for the features you are working on. To exercise PDF, image, and OCR features in the development environment:
 
 ```bash
-python3 -m pip install -e ".[all]"
+python -m pip install -e ".[dev,pdf,jpeg,ocr]"
+```
+
+For MP4 work, create a separate environment and use its entry points directly:
+
+```bash
+python3.13 -m venv .venv-mp4
+.venv-mp4/bin/python -m pip install -e ".[mp4]"
+.venv-mp4/bin/pyt-mp4-split-chunks --help
 ```
 
 The [README dependency groups](README.md#dependency-groups) own runtime setup, including FFmpeg and Tesseract. The [command guide](docs/commands.md) identifies which commands need each optional dependency.
@@ -62,14 +72,15 @@ The [architecture guide](docs/architecture.md#package-layout) owns the package l
 
 ## Validation Expectations
 
-Before sharing changes, install the development extra and run the CI-equivalent gate:
+Before sharing changes, activate the development environment and run the CI-equivalent gate:
 
 ```bash
-python3 -m pip install -e ".[dev]"
 make validate
 ```
 
 `make validate` covers compilation, linting, formatting, type checks, hook configuration, generated documentation and links, command help, installed entry points, unit tests, repository-wide coverage, and package metadata. The enforced coverage floor is configured in `pyproject.toml` and is currently 80 percent.
+
+The default tox test matrix covers Python 3.11 through 3.13. CI also checks Python 3.10 because the protected branch requires that check, and runs the type check with Pillow installed on Python 3.13.
 
 Use focused tests for shared helpers and high-risk file behavior, including overwrite guards, hidden files, symlinks, and output finalization when affected. Use synthetic fixtures under the [privacy guidance](docs/privacy.md#development-fixtures-and-diagnostics).
 

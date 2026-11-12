@@ -28,13 +28,13 @@ from typing import Any
 
 from pytransformer.core.common import build_command_parser, temporary_output_path
 
-fitz: Any | None
+pymupdf: Any | None
 FITZ_IMPORT_ERROR: ImportError | None
 
 try:
-    fitz = importlib.import_module("fitz")  # PyMuPDF
+    pymupdf = importlib.import_module("pymupdf")
 except ImportError as exc:
-    fitz = None
+    pymupdf = None
     FITZ_IMPORT_ERROR = exc
 else:
     FITZ_IMPORT_ERROR = None
@@ -119,12 +119,12 @@ def validate_inputs(pdf_path: Path, dest_dir: Path, quality: int, dpi: int) -> N
 
 
 def open_pdf(pdf_path: Path, password: str) -> Any:
-    fitz_module = fitz
-    if fitz_module is None:
-        raise ConversionError("PyMuPDF is required. Install it with: pip install pymupdf")
+    pdf_library = pymupdf
+    if pdf_library is None:
+        raise ConversionError("PyMuPDF is required. Run: python -m pip install --upgrade pymupdf")
 
     try:
-        doc = fitz_module.open(str(pdf_path))
+        doc = pdf_library.open(str(pdf_path))
     except Exception as exc:
         raise ConversionError(f"Failed to open PDF: {exc}") from exc
 
@@ -163,12 +163,12 @@ def convert_pdf_to_images(
     quality: int,
     overwrite: bool,
 ) -> ConversionSummary:
-    fitz_module = fitz
-    if fitz_module is None:
-        raise ConversionError("PyMuPDF is required. Install it with: pip install pymupdf")
+    pdf_library = pymupdf
+    if pdf_library is None:
+        raise ConversionError("PyMuPDF is required. Run: python -m pip install --upgrade pymupdf")
 
     zoom = dpi / 72.0
-    matrix = fitz_module.Matrix(zoom, zoom)
+    matrix = pdf_library.Matrix(zoom, zoom)
 
     total_pages = doc.page_count
     digits = len(str(total_pages))
@@ -213,7 +213,7 @@ def main() -> int:
     setup_logger(quiet=args.quiet)
 
     if FITZ_IMPORT_ERROR is not None:
-        logging.error("PyMuPDF is required. Install it with: pip install pymupdf")
+        logging.error("PyMuPDF is required. Run: python -m pip install --upgrade pymupdf")
         return 2
 
     pdf_path = args.pdf_file.expanduser().resolve()

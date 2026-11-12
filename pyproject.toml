@@ -46,7 +46,7 @@ dependencies = []
 
 [project.optional-dependencies]
 pdf = [
-    "pymupdf>=1.24",
+    "pymupdf>=1.24.3",
     "pypdf>=4.0",
 ]
 jpeg = [
@@ -64,7 +64,7 @@ all = [
     "defusedxml>=0.7",
     "moviepy>=1.0",
     "pillow>=10.0",
-    "pymupdf>=1.24",
+    "pymupdf>=1.24.3",
     "pypdf>=4.0",
     "pytesseract>=0.3",
     "SpeechRecognition>=3.10",
@@ -159,10 +159,10 @@ warn_unused_ignores = true
 [[tool.mypy.overrides]]
 module = [
     "defusedxml",
-    "fitz",
     "moviepy",
     "moviepy.editor",
     "PIL",
+    "pymupdf",
     "pypdf",
     "PyPDF2",
     "pytesseract",

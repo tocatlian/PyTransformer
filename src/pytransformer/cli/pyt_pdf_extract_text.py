@@ -29,13 +29,13 @@ from typing import Any
 
 from pytransformer.core.common import ScriptError, build_command_parser, temporary_output_path
 
-fitz: Any | None
+pymupdf: Any | None
 FITZ_IMPORT_ERROR: ImportError | None
 
 try:
-    fitz = importlib.import_module("fitz")  # PyMuPDF
+    pymupdf = importlib.import_module("pymupdf")
 except ImportError as exc:
-    fitz = None
+    pymupdf = None
     FITZ_IMPORT_ERROR = exc
 else:
     FITZ_IMPORT_ERROR = None
@@ -193,12 +193,12 @@ def ocr_dependency_message() -> str:
 
 
 def open_pdf(pdf_path: Path, password: str) -> Any:
-    fitz_module = fitz
-    if fitz_module is None:
-        raise TextExtractionError("PyMuPDF is required. Install it with: pip install pymupdf")
+    pdf_library = pymupdf
+    if pdf_library is None:
+        raise TextExtractionError("PyMuPDF is required. Run: python -m pip install --upgrade pymupdf")
 
     try:
-        doc = fitz_module.open(str(pdf_path))
+        doc = pdf_library.open(str(pdf_path))
     except Exception as exc:
         raise TextExtractionError(f"Cannot open PDF '{pdf_path}': {exc}") from exc
 
@@ -318,7 +318,7 @@ def main() -> int:
     args = parser.parse_args()
 
     if FITZ_IMPORT_ERROR is not None:
-        print("Error: PyMuPDF is required. Install it with: pip install pymupdf", file=sys.stderr)
+        print("Error: PyMuPDF is required. Run: python -m pip install --upgrade pymupdf", file=sys.stderr)
         return 2
 
     logger = None

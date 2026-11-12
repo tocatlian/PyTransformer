@@ -38,3 +38,9 @@ jobs:
 
       - name: Smoke test
         run: make smoke
+
+      - name: Type check with Pillow installed
+        if: matrix.python-version == '3.13'
+        run: |
+          python -m pip install -e ".[jpeg]"
+          make type-check
