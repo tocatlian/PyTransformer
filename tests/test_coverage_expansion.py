@@ -183,7 +183,7 @@ class FakePdfDoc:
         self.closed = True
 
 
-class FakeFitz:
+class FakePyMuPDF:
     def __init__(self, doc: FakePdfDoc) -> None:
         self.doc = doc
         self.matrices: list[tuple[float, float]] = []
@@ -447,13 +447,13 @@ class PdfTests(unittest.TestCase):
 
     def test_pdf_text_open_and_pixmap_helpers(self) -> None:
         doc = FakePdfDoc([FakePdfPage("x")], encrypted=True, auth=True)
-        fake_fitz = FakeFitz(doc)
-        with patch.object(pdf_text_cli, "fitz", fake_fitz):
+        fake_pymupdf = FakePyMuPDF(doc)
+        with patch.object(pdf_text_cli, "pymupdf", fake_pymupdf):
             with self.assertRaises(pdf_text_cli.TextExtractionError):
                 pdf_text_cli.open_pdf(Path("x.pdf"), "")
             self.assertIs(pdf_text_cli.open_pdf(Path("x.pdf"), "secret"), doc)
         empty = FakePdfDoc([])
-        with patch.object(pdf_text_cli, "fitz", FakeFitz(empty)):
+        with patch.object(pdf_text_cli, "pymupdf", FakePyMuPDF(empty)):
             with self.assertRaises(pdf_text_cli.TextExtractionError):
                 pdf_text_cli.open_pdf(Path("x.pdf"), "")
 
@@ -478,7 +478,7 @@ class PdfTests(unittest.TestCase):
             output = folder / "doc.txt"
             doc = FakePdfDoc([FakePdfPage("content")])
             with (
-                patch.object(pdf_text_cli, "fitz", FakeFitz(doc)),
+                patch.object(pdf_text_cli, "pymupdf", FakePyMuPDF(doc)),
                 patch.object(pdf_text_cli, "FITZ_IMPORT_ERROR", None),
                 patch.object(sys, "argv", ["pyt-pdf-extract-text", "--no-ocr", "--output", str(output), str(pdf)]),
             ):
@@ -508,8 +508,8 @@ class PdfTests(unittest.TestCase):
             page1 = SimpleNamespace(get_pixmap=lambda **_kwargs: pix)
             page2 = SimpleNamespace(get_pixmap=lambda **_kwargs: failing_pix)
             doc = SimpleNamespace(page_count=2, load_page=lambda index: [page1, page2][index])
-            fake_fitz = FakeFitz(FakePdfDoc([FakePdfPage("x")]))
-            with patch.object(pdf_render_cli, "fitz", fake_fitz):
+            fake_pymupdf = FakePyMuPDF(FakePdfDoc([FakePdfPage("x")]))
+            with patch.object(pdf_render_cli, "pymupdf", fake_pymupdf):
                 pdf_render_cli.save_pixmap_jpeg(pix, folder / "fallback.jpg", 80)
                 with patch.object(pix, "save", side_effect=[TypeError("old api"), None]):
                     pdf_render_cli.save_pixmap_jpeg(pix, folder / "fallback.jpg", 80)
@@ -517,13 +517,13 @@ class PdfTests(unittest.TestCase):
             self.assertEqual((summary.saved, summary.failed), (1, 1))
             existing = destination / "page_1.jpg"
             self.assertTrue(existing.exists())
-            with patch.object(pdf_render_cli, "fitz", fake_fitz):
+            with patch.object(pdf_render_cli, "pymupdf", fake_pymupdf):
                 skipped = pdf_render_cli.convert_pdf_to_images(doc, destination, 72, 80, overwrite=False)
             self.assertGreaterEqual(skipped.skipped, 1)
 
     def test_pdf_render_open_and_main(self) -> None:
         doc = FakePdfDoc([FakePdfPage("x")], encrypted=True, auth=True)
-        with patch.object(pdf_render_cli, "fitz", FakeFitz(doc)):
+        with patch.object(pdf_render_cli, "pymupdf", FakePyMuPDF(doc)):
             with self.assertRaises(pdf_render_cli.ConversionError):
                 pdf_render_cli.open_pdf(Path("x.pdf"), "")
             self.assertIs(pdf_render_cli.open_pdf(Path("x.pdf"), "pw"), doc)
@@ -539,8 +539,8 @@ class PdfTests(unittest.TestCase):
             with (
                 patch.object(
                     pdf_render_cli,
-                    "fitz",
-                    FakeFitz(FakePdfDoc([FakePdfPage("x")])),
+                    "pymupdf",
+                    FakePyMuPDF(FakePdfDoc([FakePdfPage("x")])),
                 ),
                 patch.object(pdf_render_cli, "FITZ_IMPORT_ERROR", None),
                 patch.object(pdf_render_cli, "open_pdf", return_value=render_doc),

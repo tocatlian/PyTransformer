@@ -10,17 +10,15 @@ The project follows a standard Python `src/` layout. Internal modules use lowerc
 
 ## Installation
 
-From a local checkout:
+From a local checkout, create and activate a virtual environment, then install the package:
 
 ```bash
-python3 -m pip install -e .
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e .
 ```
 
-For development:
-
-```bash
-python3 -m pip install -e ".[dev]"
-```
+For development, see the [contributor setup](CONTRIBUTING.md#development-setup).
 
 ## Quick Start
 
@@ -51,11 +49,10 @@ The base install has no runtime dependencies and supports these standard-library
 Install optional dependency groups only for the commands you need:
 
 ```bash
-python3 -m pip install -e ".[pdf]"
-python3 -m pip install -e ".[jpeg]"
-python3 -m pip install -e ".[mp4]"
-python3 -m pip install -e ".[ocr]"
-python3 -m pip install -e ".[all]"
+python -m pip install -e ".[pdf]"
+python -m pip install -e ".[jpeg]"
+python -m pip install -e ".[mp4]"
+python -m pip install -e ".[ocr]"
 ```
 
 - `.[pdf]` installs `pymupdf` and `pypdf` for PDF extraction and rendering commands.
@@ -65,6 +62,8 @@ python3 -m pip install -e ".[all]"
 - `.[ocr]` installs `pytesseract`; OCR fallback also requires a system Tesseract installation.
 - `.[all]` installs every optional runtime dependency group.
 - `.[dev]` installs build, coverage, type-checking, linting, pre-commit, tox, and package-checking tools.
+
+MoviePy 2.2.1 limits Pillow to versions below 12. If you use MP4 commands alongside PDF, image, or OCR commands, install `.[mp4]` in its own virtual environment so the other commands can use current Pillow releases. Use `.[pdf,jpeg,ocr]` together for scanned-PDF OCR.
 
 ## Validation
 

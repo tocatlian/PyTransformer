@@ -20,6 +20,7 @@ Related scripts: pyt_image_collage_slice.py, pyt_jpeg_show_metadata.py, pyt_jpeg
 from __future__ import annotations
 
 import argparse
+import importlib
 import logging
 import math
 import re
@@ -37,8 +38,14 @@ from pytransformer.core.common import (
     temporary_output_path,
 )
 
+Image: Any
+ImageOps: Any
+UnidentifiedImageError: type[OSError]
+
 try:
-    from PIL import Image, ImageOps, UnidentifiedImageError
+    Image = importlib.import_module("PIL.Image")
+    ImageOps = importlib.import_module("PIL.ImageOps")
+    UnidentifiedImageError = importlib.import_module("PIL").UnidentifiedImageError
 except ImportError:  # pragma: no cover - exercised only when optional dependency is missing.
     Image = None
     ImageOps = None

@@ -173,7 +173,7 @@ smoke-pdf:
 	@tmpdir="$$(mktemp -d)"; \
 	trap 'rm -rf "$$tmpdir"' EXIT; \
 	mkdir -p "$$tmpdir/pdfs" "$$tmpdir/batch-text" "$$tmpdir/rendered"; \
-	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -c 'import sys; from pathlib import Path; import fitz; pdf_path = Path(sys.argv[1]); doc = fitz.open(); page = doc.new_page(); page.insert_text((72, 72), "PyTransformer PDF smoke fixture"); doc.save(pdf_path); doc.close()' "$$tmpdir/pdfs/sample.pdf"; \
+	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -c 'import sys; from pathlib import Path; import pymupdf; pdf_path = Path(sys.argv[1]); doc = pymupdf.open(); page = doc.new_page(); page.insert_text((72, 72), "PyTransformer PDF smoke fixture"); doc.save(pdf_path); doc.close()' "$$tmpdir/pdfs/sample.pdf"; \
 	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytransformer.cli.pyt_pdf_extract_selectable_text --output "$$tmpdir/selectable.txt" "$$tmpdir/pdfs/sample.pdf"; \
 	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytransformer.cli.pyt_pdf_extract_selectable_text_batch --output-folder "$$tmpdir/batch-text" "$$tmpdir/pdfs"; \
 	PYTHONPATH=$(PYTHONPATH) $(PYTHON) -m pytransformer.cli.pyt_pdf_extract_text --no-ocr --output "$$tmpdir/extracted.txt" "$$tmpdir/pdfs/sample.pdf"; \

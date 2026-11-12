@@ -5,17 +5,21 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import importlib
 import io
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from typing import Any
 from unittest.mock import Mock
 
 from pytransformer.cli import pyt_image_split
 from pytransformer.core.common import ScriptError
 
+Image: Any
+
 try:
-    from PIL import Image
+    Image = importlib.import_module("PIL.Image")
 except ImportError:  # pragma: no cover - optional dependency availability varies.
     Image = None
 

@@ -56,9 +56,17 @@ The user needs aggressive disk space recovery on a nearly full MacBook. Inspecti
 
 Consequences: [Operations](operations.md#disk-space-maintenance) owns the measured cleanup procedure and the boundary between project cleanup and separately authorized shared storage cleanup. Larger storage targets must be inspected outside this small repository rather than assuming Git history is responsible for disk pressure.
 
+## Isolate Project Python And MP4 Dependencies
+
+Date: 2026-11-11. Status: accepted.
+
+The post-macOS-upgrade audit found that the shell's Python and the installed PyTransformer launchers could come from different distributions. A project virtual environment keeps the interpreter, package installer, command launchers, and validation tools aligned. MoviePy's Pillow upper bound makes a separate MP4 environment useful when working with images or PDFs that can use newer Pillow releases.
+
+Python 3.10 reached upstream end of life and was removed from the default tox matrix. Package metadata permits Python 3.10 installations, and CI continues to run its required Python 3.10 check until the branch protection requirement is retired. CI checks optional Pillow imports on Python 3.13 because the development-only dependency set missed typing errors when Pillow was present. [Development setup](../CONTRIBUTING.md#development-setup) owns the workflow, and the [README](../README.md#dependency-groups) owns runtime dependency guidance.
+
 ## Technical Discoveries
 
-- PyMuPDF is imported as `fitz`. Its user-facing dependency name and install extra need to be clear in diagnostics.
+- PyMuPDF 1.24.3 introduced the `pymupdf` import. Using it avoids the deprecated `fitz` alias and a naming collision with the separate `fitz` package.
 - JPEG metadata can come from EXIF, GPS EXIF, XMP, IPTC, ICC profiles, comments, and Pillow `info` fields. Summarizing raw binary metadata makes inspection usable.
 - Preserving JPEG visual orientation, color profile, quantization tables, and subsampling is separate from preserving private descriptive metadata. The [JPEG command contracts](commands.md#jpeg-commands) own the behavior.
 - Copying Pillow image info can retain comments during metadata stripping. The fix is recorded in [CHANGELOG.md](../CHANGELOG.md#unreleased).
