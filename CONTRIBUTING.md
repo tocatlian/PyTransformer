@@ -80,7 +80,7 @@ make validate
 
 `make validate` covers compilation, linting, formatting, type checks, hook configuration, generated documentation and links, command help, installed entry points, unit tests, repository-wide coverage, and package metadata. The enforced coverage floor is configured in `pyproject.toml` and is currently 80 percent.
 
-The default tox test matrix covers Python 3.11 through 3.13. CI also checks Python 3.10 because the protected branch requires that check, and runs the type check with Pillow installed on Python 3.13.
+CI and the default tox matrix cover Python 3.11 through 3.13. Branch protection requires all three CI checks on `main`. CI also runs the type check with Pillow installed on Python 3.13.
 
 Use focused tests for shared helpers and high-risk file behavior, including overwrite guards, hidden files, symlinks, and output finalization when affected. Use synthetic fixtures under the [privacy guidance](docs/privacy.md#development-fixtures-and-diagnostics).
 

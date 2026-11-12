@@ -62,7 +62,7 @@ Date: 2026-11-11. Status: accepted.
 
 The post-macOS-upgrade audit found that the shell's Python and the installed PyTransformer launchers could come from different distributions. A project virtual environment keeps the interpreter, package installer, command launchers, and validation tools aligned. MoviePy's Pillow upper bound makes a separate MP4 environment useful when working with images or PDFs that can use newer Pillow releases.
 
-Python 3.10 reached upstream end of life and was removed from the default tox matrix. Package metadata permits Python 3.10 installations, and CI continues to run its required Python 3.10 check until the branch protection requirement is retired. CI checks optional Pillow imports on Python 3.13 because the development-only dependency set missed typing errors when Pillow was present. [Development setup](../CONTRIBUTING.md#development-setup) owns the workflow, and the [README](../README.md#dependency-groups) owns runtime dependency guidance.
+Python 3.10 reached upstream end of life and was removed from the default tox matrix. It stayed in CI until the corresponding branch protection requirement could be retired. On 2026-11-11, the project retired that CI job and its required check while keeping Python 3.11 through 3.13 required. Package metadata permits Python 3.10 installations. CI checks optional Pillow imports on Python 3.13 because the development-only dependency set missed typing errors when Pillow was present. [Development setup](../CONTRIBUTING.md#development-setup) owns the workflow, and the [README](../README.md#dependency-groups) owns runtime dependency guidance.
 
 ## Technical Discoveries
 
