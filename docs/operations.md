@@ -46,6 +46,24 @@ DEVELOPER_DIR=/Library/Developer/CommandLineTools make validate
 
 This requires working Command Line Tools at that path. It does not accept the Xcode license or establish that Xcode-only tools and simulator operations are available. If neither toolchain can run the required gate, preserve the changes and request the missing user action before committing. Do not bypass validation or accept legal terms on the user's behalf.
 
+#### Virtual Environments After a Mac Migration
+
+If a project launcher raises `ModuleNotFoundError: No module named 'pytransformer'` even though pip lists the editable install, run the affected environment's Python in verbose mode. Python logs `Skipping hidden .pth file` when a migrated macOS hidden flag prevents it from loading an editable install path. Check both environments from the project root:
+
+```bash
+.venv/bin/python -v -c 'import pytransformer'
+.venv-mp4/bin/python -v -c 'import pytransformer'
+```
+
+If the editable install path is the only affected file in an environment, reinstall the project in that environment to recreate the path and launchers with the existing dependencies:
+
+```bash
+.venv/bin/python -m pip install --no-deps -e .
+.venv-mp4/bin/python -m pip install --no-deps -e .
+```
+
+If the base interpreter is missing or other packages also have hidden `.pth` files, recreate the affected environment using the [development setup](../CONTRIBUTING.md#development-setup). Verify that each environment's `bin/pyt-help --names-only` works and run the [validation checks](../CONTRIBUTING.md#validation-expectations).
+
 ## Local Cleanup
 
 Inspect Git state and file ownership before cleanup. Ignored or untracked files are not automatically disposable. Preserve source files, original media, credentials, intentional working-tree edits, and useful current verification or recovery evidence.
